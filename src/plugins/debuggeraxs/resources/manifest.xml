@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_plugin_manifest_file>
+    <SdkVersion major="1" minor="10" release="0" />
+    <Plugin name="AXSEM Debugger">
+        <Value title="AXSEM Debugger" />
+        <Value version="0.4" />
+        <Value description="Plugin that interfaces the AXSDB debugger." />
+        <Value author="AXSEM AG" />
+        <Value authorEmail="support@axsem.com" />
+        <Value authorWebsite="http://www.axsem.com" />
+        <Value thanksTo="The developers of the original Debugger plugin" />
+        <Value license="GNU General Public License version 3" />
+    </Plugin>
+</CodeBlocks_plugin_manifest_file>
