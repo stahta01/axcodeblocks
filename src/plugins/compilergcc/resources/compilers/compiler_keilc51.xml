@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE CodeBlocks_compiler>
+<CodeBlocks_compiler name="Keil C51 Compiler"
+                     id="keilc51"
+                     weight="20"
+                     platform="windows">
+    <Path type="master">
+        <Search envVar="PATH"
+                for="C"/>
+        <Search registry="HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall\Keil &micro;Vision3"
+                value="LastInstallDir"/>
+        <Search path="C:\Keil\C51"/>
+        <Fallback path="C:\Keil\C51"/>
+    </Path>
+    <Path type="include">
+        <Add><master/>\inc</Add>
+    </Path>
+    <Path type="lib">
+        <Add><master/>\lib</Add>
+    </Path>
+    <Path type="extra">
+        <Add><master/>\bin</Add>
+    </Path>
+</CodeBlocks_compiler>
+
