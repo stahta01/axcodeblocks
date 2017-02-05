@@ -1,8 +1,10 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
-           -I$(top_srcdir)/src/include \
-           -I$(top_srcdir)/src/sdk/wxscintilla/include
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN \
+		-I$(top_srcdir)/src/include \
+		-I$(top_srcdir)/src/sdk/wxscintilla/include
 
-CXXFLAGS = @CXXFLAGS@  -O0
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS) -O0
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
 
 pluginlibdir = $(pkglibdir)/plugins
 
@@ -10,7 +12,7 @@ pluginlib_LTLIBRARIES = libheaderfixup.la
 
 libheaderfixup_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libheaderfixup_la_LIBADD = ../../../sdk/libcodeblocks.la $(WX_LIBS)
+libheaderfixup_la_LIBADD = ../../../sdk/libaxcodeblocks.la $(WX_LIBS)
 
 libheaderfixup_la_SOURCES = bindings.cpp \
                             configuration.cpp \

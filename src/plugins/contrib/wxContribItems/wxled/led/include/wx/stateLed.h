@@ -8,7 +8,7 @@
 #include <map>
 
 /// Class to display a Led on the used dialogs page
-class wxStateLed : public wxWindow
+class WXDLLEXPORT wxStateLed : public wxWindow
 {
 	public :
         /** Constructor

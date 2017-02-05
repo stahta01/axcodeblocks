@@ -427,10 +427,10 @@ wxString MainFrame::FileSelector()
 #ifdef __WXMSW__
   TCHAR szPath[MAX_PATH];
   SHGetFolderPath(NULL, CSIDL_APPDATA, 0, 0, szPath);
-  wxString config_folder = wxString(szPath) + wxT("\\codeblocks");
+  wxString config_folder = wxString(szPath) + wxT("\\axcodeblocks");
 #else
 #ifdef __linux__
-  wxString config_folder = wxString::FromUTF8(g_build_filename (g_get_user_config_dir(), "codeblocks", NULL));
+  wxString config_folder = wxString::FromUTF8(g_build_filename (g_get_user_config_dir(), "axcodeblocks", NULL));
 #else
   wxString config_folder =  wxStandardPathsBase::Get().GetUserDataDir();
 #endif // __linux__

@@ -1,4 +1,4 @@
-sdkdir=$(includedir)/codeblocks/wxContribItems/KWIC/include/wx/KWIC
+sdkdir=$(includedir)/axcodeblocks/wxContribItems/KWIC/include/wx/KWIC
 
 sdk_HEADERS = \
 ./AngularMeter.h \

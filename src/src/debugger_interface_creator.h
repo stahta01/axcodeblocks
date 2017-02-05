@@ -32,6 +32,14 @@ class DebugInterfaceFactory : public cbDebugInterfaceFactory
         virtual cbExamineMemoryDlg* CreateMemory();
         virtual void DeleteMemory(cbExamineMemoryDlg *dialog);
 
+        ///AXSEM
+        virtual axs_cbPinEmDlg* CreateAXSPinEm();
+        virtual void DeleteAXSPinEm(axs_cbPinEmDlg *dialog);
+
+        ///AXSEM
+        virtual axs_cbDbgLink* CreateAXSDbgLink();
+        virtual void DeleteAXSDbgLink(axs_cbDbgLink *dialog);
+
         virtual cbThreadsDlg* CreateThreads();
         virtual void DeleteThreads(cbThreadsDlg *dialog);
 

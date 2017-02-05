@@ -1,6 +1,6 @@
 AM_CPPFLAGS = $(WX_CXXFLAGS)
 
-wxcontribitemsdir=$(libdir)/codeblocks/wxContribItems
+wxcontribitemsdir=$(libdir)/axcodeblocks/wxContribItems
 
 wxcontribitems_LTLIBRARIES = libwxmathplot.la
 
@@ -11,7 +11,7 @@ libwxmathplot_la_LIBADD = $(WX_LIBS)
 libwxmathplot_la_SOURCES = \
 ./mathplot.cpp
 
-sdkdir=$(includedir)/codeblocks/wxContribItems/wxMathPlot
+sdkdir=$(includedir)/axcodeblocks/wxContribItems/wxMathPlot
 
 sdk_HEADERS = \
 ./mathplot.h

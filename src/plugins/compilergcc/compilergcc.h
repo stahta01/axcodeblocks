@@ -221,6 +221,9 @@ class CompilerGCC : public cbCompilerPlugin
         void BuildStateManagement(); ///< This uses m_BuildJob.
         BuildState GetNextStateBasedOnJob();
         void NotifyJobDone(bool showNothingToBeDone = false);
+        bool SDCCTargetPostprocess(wxString outfilename, unsigned int& nrerror, unsigned int& nrwarn);
+        bool SDCCTargetPostprocess(wxString outfilename);
+        class Segment8052;
 
         // wxArrayString from DirectCommands
         void AddToCommandQueue(const wxArrayString& commands);
@@ -260,6 +263,7 @@ class CompilerGCC : public cbCompilerPlugin
             PipedProcess* pProcess;
             wxString      OutputFile;
             long int      PID;
+            wxDateTime    StartTime;
         };
         typedef std::vector<CompilerProcess> CompilerProcessList;
         CompilerProcessList m_CompilerProcessList;

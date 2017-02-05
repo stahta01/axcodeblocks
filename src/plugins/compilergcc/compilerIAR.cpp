@@ -21,6 +21,8 @@
     #include <wx/msw/registry.h>
 #endif
 
+#define FEDORA
+
 CompilerIAR::CompilerIAR(wxString arch)
     : Compiler(_("IAR ") + arch + _(" Compiler"), _T("iar") + arch)
 {
@@ -41,33 +43,68 @@ Compiler * CompilerIAR::CreateCopy()
 
 AutoDetectResult CompilerIAR::AutoDetectInstallationDir()
 {
+    wxString axsdb;
     if (platform::windows)
     {
         m_MasterPath.Clear();
 #ifdef __WXMSW__ // for wxRegKey
+        wxString iarversion;
         wxRegKey key;   // defaults to HKCR
-        key.SetName(wxT("HKEY_LOCAL_MACHINE\\Software\\IAR Systems\\Installed Products"));
-        if (key.Exists() && key.Open(wxRegKey::Read))
+        static const wxString regroot[2] = {
+            wxT("HKEY_LOCAL_MACHINE\\SOFTWARE\\IAR Systems\\Embedded Workbench"),
+            wxT("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\IAR Systems\\Embedded Workbench")
+        };
+        for (unsigned int rootidx = 0; rootidx < sizeof(regroot)/sizeof(regroot[0]); ++rootidx)
         {
-            wxString subkeyname;
-            long idx;
-            if (key.GetFirstKey(subkeyname, idx))
+            key.SetName(regroot[rootidx]);
+            if (key.Exists() && key.Open(wxRegKey::Read))
             {
-                do
+                wxString subkeyname;
+                long idx;
+                if (key.GetFirstKey(subkeyname, idx))
                 {
-                    wxRegKey keys;
-                    keys.SetName(key.GetName() + wxFILE_SEP_PATH + subkeyname);
-                    if (!keys.Exists() || !keys.Open(wxRegKey::Read))
-                        continue;
-                    keys.QueryValue(wxT("TargetDir"), m_MasterPath);
-                    if (!m_MasterPath.IsEmpty())
+                    do
                     {
-                        if (wxFileExists(m_MasterPath + wxFILE_SEP_PATH + wxT("bin") + wxFILE_SEP_PATH + m_Programs.C))
-                            break;
-                        m_MasterPath.Clear();
-                    }
-                } while (key.GetNextKey(subkeyname, idx));
+                         wxRegKey keys;
+                        keys.SetName(key.GetName() + wxFILE_SEP_PATH + subkeyname + wxFILE_SEP_PATH + wxT("EW") + m_Arch);
+                        if (!keys.Exists() || !keys.Open(wxRegKey::Read))
+                            continue;
+                        wxString subkeyversion;
+                        long idxv;
+                        if (keys.GetFirstKey(subkeyversion, idxv))
+                        {
+                            do
+                            {
+                                wxRegKey keyv;
+                                keyv.SetName(keys.GetName() + wxFILE_SEP_PATH + subkeyversion);
+                                if (!keyv.Exists() || !keyv.Open(wxRegKey::Read))
+                                    continue;
+                                wxString masterpath;
+                                keyv.QueryValue(wxT("InstallPath"), masterpath);
+                                if (masterpath.IsEmpty())
+                                    continue;
+                                masterpath += wxFILE_SEP_PATH + m_Arch;
+                                if (!wxFileExists(masterpath + wxFILE_SEP_PATH + wxT("bin") + wxFILE_SEP_PATH + m_Programs.C))
+                                    continue;
+                                if (!m_MasterPath.IsEmpty() && subkeyversion < iarversion)
+                                    continue;
+                                m_MasterPath = masterpath;
+                                iarversion = subkeyversion;
+                            } while (keys.GetNextKey(subkeyversion, idxv));
+                        }
+                    } while (key.GetNextKey(subkeyname, idx));
+                }
             }
+        }
+        wxRegKey keyaxsdb;
+        keyaxsdb.SetName(wxT("HKEY_LOCAL_MACHINE\\Software\\AXSEM\\AXSDB"));
+        if (keyaxsdb.Exists() && key.Open(wxRegKey::Read)) {
+            keyaxsdb.QueryValue(wxT("InstallDir"), axsdb);
+        } else {
+            wxRegKey keyaxsdb;
+            keyaxsdb.SetName(wxT("HKEY_CURRENT_USER\\Software\\AXSEM\\AXSDB"));
+            if (keyaxsdb.Exists() && key.Open(wxRegKey::Read))
+                keyaxsdb.QueryValue(wxT("InstallDir"), axsdb);
         }
 #endif // __WXMSW__
         wxString env_path = wxGetenv(_T("ProgramFiles(x86)"));
@@ -110,12 +147,34 @@ AutoDetectResult CompilerIAR::AutoDetectInstallationDir()
     else
     {
         m_MasterPath=_T("/usr/local"); // default
+#ifdef FEDORA
+        m_MasterPath=_T("/usr");
+#endif
+#ifdef __WXGTK__
+        axsdb = _T("/usr/share/microfoot");
+#endif
     }
     if (m_Arch == wxT("8051"))
     {
-        AddLinkerOption(wxT("-f \"") + m_MasterPath + wxFILE_SEP_PATH + wxT("config") + wxFILE_SEP_PATH +
-                        wxT("devices") + wxFILE_SEP_PATH + wxT("_generic") + wxFILE_SEP_PATH +
-                        wxT("lnk51ew_plain.xcl\""));
+        if ( wxDirExists(axsdb) )
+        {
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libmf") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libmf") + wxFILE_SEP_PATH + wxT("iar"));
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libmfcrypto") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libmfcrypto") + wxFILE_SEP_PATH + wxT("iar"));
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libaxdvk2") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libaxdvk2") + wxFILE_SEP_PATH + wxT("iar"));
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libax5031") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libax5031") + wxFILE_SEP_PATH + wxT("iar"));
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libax5042") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libax5042") + wxFILE_SEP_PATH + wxT("iar"));
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libax5043") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libax5043") + wxFILE_SEP_PATH + wxT("iar"));
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libax5051") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libax5051") + wxFILE_SEP_PATH + wxT("iar"));
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libaxdsp") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libaxdsp") + wxFILE_SEP_PATH + wxT("iar"));
+        }
     }
     else // IAR
     {

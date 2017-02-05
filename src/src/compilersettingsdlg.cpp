@@ -65,7 +65,11 @@ CompilerSettingsDlg::CompilerSettingsDlg(wxWindow* parent)
     {
         // defaults
         if (platform::windows)
+#ifdef CB_AUTOCONF
+            bbplugins.Add(_T("libcompiler.dll"));
+#else
             bbplugins.Add(_T("compiler.dll"));
+#endif
         else
             bbplugins.Add(_T("libcompiler.so"));
     }
@@ -243,7 +247,11 @@ void CompilerSettingsDlg::EndModal(int retCode)
             }
         }
 
+#ifdef CB_AUTOCONF
+        const wxString compiler(platform::windows ? _T("libcompiler.dll") : _T("libcompiler.so"));
+#else
         const wxString compiler(platform::windows ? _T("compiler.dll") : _T("libcompiler.so"));
+#endif
 
         if (bbplugins.Index(compiler) == wxNOT_FOUND)
         {

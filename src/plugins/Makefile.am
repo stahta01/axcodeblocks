@@ -19,11 +19,25 @@ MAYBE_COMPILER=compilergcc
 endif
 
 if BUILD_DEBUGGER
-MAYBE_DEBUGGER=debuggergdb
+#MAYBE_DEBUGGER=debuggeraxs debuggergdb
+MAYBE_DEBUGGER=debuggeraxs
+MAYBE_DEBUGGER2=debuggergdb
 endif
 
 if BUILD_MIMEHANDLER
 MAYBE_MIMEHANDLER=defaultmimehandler
+endif
+
+if BUILD_HEADERGUARD
+MAYBE_HEADERGUARD=headerguard
+endif
+
+if BUILD_LOGHACKER
+MAYBE_LOGHACKER=loghacker
+endif
+
+if BUILD_MODPOLLER
+MAYBE_MODPOLLER=modpoller
 endif
 
 if BUILD_OPENFILESLIST
@@ -40,6 +54,10 @@ endif
 
 if BUILD_SCRIPTEDWIZARD
 MAYBE_SCRIPTEDWIZARD=scriptedwizard
+endif
+
+if BUILD_TIDYCMT
+MAYBE_TIDYCMT=tidycmt
 endif
 
 if BUILD_TODO
@@ -60,11 +78,16 @@ SUBDIRS=$(MAYBE_ASTYLE) \
 		$(MAYBE_CODECOMPLETION) \
 		$(MAYBE_COMPILER) \
 		$(MAYBE_DEBUGGER) \
+		$(MAYBE_DEBUGGER2) \
 		$(MAYBE_MIMEHANDLER) \
+		$(MAYBE_HEADERGUARD) \
+		$(MAYBE_LOGHACKER) \
+		$(MAYBE_MODPOLLER) \
 		$(MAYBE_SCRIPTEDWIZARD) \
 		$(MAYBE_PROJECTSIMPORTER) \
 		$(MAYBE_OPENFILESLIST) \
 		$(MAYBE_OCCURRENCESHIGHLIGHTING) \
+		$(MAYBE_TIDYCMT) \
 		$(MAYBE_TODO) \
 		$(MAYBE_ABBREVIATIONS) \
 		$(MAYBE_MANIFEST) \
@@ -77,12 +100,17 @@ DIST_SUBDIRS = abbreviations \
 		classwizard \
 		codecompletion \
 		compilergcc \
+		debuggeraxs \
 		debuggergdb \
 		defaultmimehandler \
+		headerguard \
+		loghacker \
+		modpoller \
 		openfileslist \
 		occurrenceshighlighting \
 		projectsimporter \
 		scriptedwizard \
+		tidycmt \
 		todo \
 		xpmanifest \
 		contrib

@@ -1,7 +1,6 @@
 SUBDIRS = src
 
 ACLOCAL_AMFLAGS = -I m4
-
 if KEEP_DLLS
 ADDITIONAL_MAKE_DIST_OPTIONS = --exclude=".svn"
 else
@@ -11,7 +10,7 @@ endif
 am__tar = @am__tar@ $(ADDITIONAL_MAKE_DIST_OPTIONS)
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = codeblocks.pc
+pkgconfig_DATA = axcodeblocks.pc
 
 EXTRA_DIST = bootstrap \
 		codeblocks.spec \
@@ -21,7 +20,9 @@ EXTRA_DIST = bootstrap \
 		COMPILERS \
 		$(srcdir)/update* \
 		ChangeLog.xsl \
-		debian
+		debian \
+		axcodeblocks.spec \
+		mingw-axcodeblocks.spec
 
 clean-zipfiles:
 	find . -name "*.zip" | xargs rm -f

@@ -33,6 +33,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <iomanip>
 #include <wx/toolbar.h>
 
 #include "debuggermanager.h"
@@ -53,6 +54,16 @@ cbWatch::cbWatch() :
 cbWatch::~cbWatch()
 {
     m_children.clear();
+}
+
+void cbWatch::GetAddrSpace(wxString &as) const
+{
+    as.Clear();
+}
+
+void cbWatch::GetAddr(wxString &addr) const
+{
+    addr.Clear();
 }
 
 void cbWatch::AddChild(cb::shared_ptr<cbWatch> parent, cb::shared_ptr<cbWatch> watch)
@@ -182,6 +193,16 @@ void cbWatch::MarkAsChangedRecursive(bool flag)
         (*it)->MarkAsChangedRecursive(flag);
 }
 
+bool cbWatch::IsDisabled() const
+{
+    return false;
+}
+
+bool cbWatch::IsReadonly() const
+{
+    return false;
+}
+
 bool cbWatch::IsExpanded() const
 {
     return m_expanded;
@@ -308,6 +329,227 @@ int cbThread::GetNumber() const
 const wxString& cbThread::GetInfo() const
 {
     return m_info;
+}
+
+cbRegister::cbRegister() :
+    m_changed(true),
+    m_removed(false),
+    m_expanded(false)
+{
+}
+
+cbRegister::~cbRegister()
+{
+    m_children.clear();
+}
+
+void cbRegister::GetDescription(wxString &desc) const
+{
+    desc.Clear();
+}
+
+void cbRegister::GetValueAlt(wxString &value) const
+{
+    value.Clear();
+}
+
+void cbRegister::GetWriteMask(wxString &mask) const
+{
+    mask.Clear();
+}
+
+void cbRegister::GetAddrSpace(wxString &as) const
+{
+    as.Clear();
+}
+
+void cbRegister::GetAddr(wxString &addr) const
+{
+    addr.Clear();
+}
+
+void cbRegister::AddChild(cbRegister::Pointer parent, cbRegister::Pointer reg)
+{
+    reg->m_parent = parent;
+    parent->m_children.push_back(reg);
+}
+
+void cbRegister::InsertChild(cbRegister::Pointer parent, cbRegister::Pointer reg, int index)
+{
+    PtrContainer::iterator it = parent->m_children.begin();
+    std::advance(it, index);
+    reg->m_parent = parent;
+    parent->m_children.insert(it, reg);
+}
+
+void cbRegister::RemoveChild(int index)
+{
+    PtrContainer::iterator it = m_children.begin();
+    std::advance(it, index);
+    m_children.erase(it);
+}
+
+bool TestIfRegMarkedForRemoval(cbRegister::Pointer watch)
+{
+    if(watch->IsRemoved())
+        return true;
+    else
+    {
+        watch->RemoveMarkedChildren();
+        return false;
+    }
+}
+
+bool cbRegister::RemoveMarkedChildren(bool recursive)
+{
+    size_t start_size = m_children.size();
+    PtrContainer::iterator new_last = std::remove_if(m_children.begin(), m_children.end(), &TestIfRegMarkedForRemoval);
+    m_children.erase(new_last, m_children.end());
+    bool removed(start_size != m_children.size());
+    if (recursive)
+    {
+        for (PtrContainer::iterator i(m_children.begin()), e(m_children.end()); i != e; ++i)
+            removed = (*i)->RemoveMarkedChildren(true) || removed;
+    }
+    return removed;
+
+}
+void cbRegister::RemoveChildren()
+{
+    m_children.clear();
+}
+
+int cbRegister::GetChildCount() const
+{
+    return m_children.size();
+}
+
+cbRegister::Pointer cbRegister::GetChild(int index)
+{
+    PtrContainer::iterator it = m_children.begin();
+    std::advance(it, index);
+    return *it;
+}
+
+cbRegister::ConstPointer cbRegister::GetChild(int index) const
+{
+    PtrContainer::const_iterator it = m_children.begin();
+    std::advance(it, index);
+    return *it;
+}
+
+cbRegister::Pointer cbRegister::FindChild(const wxString& symbol)
+{
+    for (PtrContainer::iterator it = m_children.begin(); it != m_children.end(); ++it)
+    {
+        wxString s;
+        (*it)->GetName(s);
+        if(s == symbol)
+            return *it;
+    }
+    return cbRegister::Pointer();
+}
+
+int cbRegister::FindChildIndex(const wxString& symbol) const
+{
+    int index = 0;
+    for (PtrContainer::const_iterator it = m_children.begin(); it != m_children.end(); ++it, ++index)
+    {
+        wxString s;
+        (*it)->GetName(s);
+        if(s == symbol)
+            return index;
+    }
+    return -1;
+}
+
+cbRegister::ConstPointer cbRegister::GetParent() const
+{
+    return m_parent.lock();
+}
+
+cbRegister::Pointer cbRegister::GetParent()
+{
+    return m_parent.lock();
+}
+
+bool cbRegister::IsRemoved() const
+{
+    return m_removed;
+}
+
+bool cbRegister::IsChanged() const
+{
+    return m_changed;
+}
+
+void cbRegister::MarkAsRemoved(bool flag)
+{
+    m_removed = flag;
+}
+
+void cbRegister::MarkChildrenAsRemoved(bool recursive)
+{
+    for(PtrContainer::iterator it = m_children.begin(); it != m_children.end(); ++it)
+    {
+        (*it)->MarkAsRemoved(true);
+        if (recursive)
+            (*it)->MarkChildrenAsRemoved(true);
+    }
+}
+void cbRegister::MarkAsChanged(bool flag)
+{
+    m_changed = flag;
+}
+
+void cbRegister::MarkAsChangedRecursive(bool flag)
+{
+    m_changed = flag;
+    for(PtrContainer::iterator it = m_children.begin(); it != m_children.end(); ++it)
+        (*it)->MarkAsChangedRecursive(flag);
+}
+
+bool cbRegister::IsCategory() const
+{
+    return false;
+}
+
+bool cbRegister::IsOutdated() const
+{
+    return false;
+}
+
+bool cbRegister::IsReadonly() const
+{
+    return false;
+}
+
+bool cbRegister::IsReadSafe() const
+{
+    return true;
+}
+
+bool cbRegister::IsExpanded() const
+{
+    return m_expanded;
+}
+
+void cbRegister::Expand(bool expand)
+{
+    m_expanded = expand;
+}
+
+cbRegister::Pointer DLLIMPORT cbGetRootWatch(cbRegister::Pointer reg)
+{
+    cbRegister::Pointer root = reg;
+    while (root)
+    {
+        cbRegister::Pointer parent = root->GetParent();
+        if (!parent)
+            break;
+        root = parent;
+    }
+    return root;
 }
 
 cbDebuggerConfiguration::cbDebuggerConfiguration(const ConfigManagerWrapper &config) :
@@ -481,7 +723,7 @@ uint64_t cbDebuggerStringToAddress(const wxString &address)
 wxString cbDebuggerAddressToString(uint64_t address)
 {
     std::stringstream s;
-    s << "0x" << std::hex << address;
+    s << "0x" << std::hex << std::setw(4) << std::setfill('0') << address;
     return wxString(s.str().c_str(), wxConvUTF8);
 }
 
@@ -703,6 +945,8 @@ DebuggerManager::DebuggerManager() :
     m_examineMemoryDialog(nullptr),
     m_threadsDialog(nullptr),
     m_watchesDialog(nullptr),
+    m_axs_PinEmDialog(nullptr),
+    m_axs_DbgLnkDialog(nullptr),
     m_logger(nullptr),
     m_loggerIndex(-1),
     m_isDisassemblyMixedMode(false),
@@ -811,6 +1055,12 @@ bool DebuggerManager::UnregisterDebugger(cbDebuggerPlugin *plugin)
     {
         DestoryWindows();
 
+        m_interfaceFactory->DeleteAXSPinEm(m_axs_PinEmDialog);
+        m_axs_PinEmDialog = nullptr;
+
+        m_interfaceFactory->DeleteAXSDbgLink(m_axs_DbgLnkDialog);
+        m_axs_DbgLnkDialog = nullptr;
+
         if (Manager::Get()->GetLogManager())
             Manager::Get()->GetDebuggerManager()->HideLogger();
     }
@@ -888,7 +1138,7 @@ wxMenu* DebuggerManager::GetMenu()
 {
     wxMenuBar *menuBar = Manager::Get()->GetAppFrame()->GetMenuBar();
     cbAssert(menuBar);
-    wxMenu *menu = NULL;
+    wxMenu *menu = nullptr;
 
     int menu_pos = menuBar->FindMenu(_("&Debug"));
 
@@ -987,6 +1237,8 @@ void DebuggerManager::SetInterfaceFactory(cbDebugInterfaceFactory *factory)
     m_disassemblyDialog->EnableWindow(false);
     m_examineMemoryDialog->EnableWindow(false);
     m_threadsDialog->EnableWindow(false);
+    m_axs_PinEmDialog->SetEnable(false);
+    m_axs_DbgLnkDialog->TerminalEnable(false);
 }
 
 void DebuggerManager::CreateWindows()
@@ -1005,6 +1257,10 @@ void DebuggerManager::CreateWindows()
         m_threadsDialog = m_interfaceFactory->CreateThreads();
     if (!m_watchesDialog)
         m_watchesDialog = m_interfaceFactory->CreateWatches();
+    if (!m_axs_PinEmDialog)
+        m_axs_PinEmDialog = m_interfaceFactory->CreateAXSPinEm();
+    if (!m_axs_DbgLnkDialog)
+        m_axs_DbgLnkDialog = m_interfaceFactory->CreateAXSDbgLink();
 }
 
 void DebuggerManager::DestoryWindows()
@@ -1029,6 +1285,12 @@ void DebuggerManager::DestoryWindows()
 
     m_interfaceFactory->DeleteWatches(m_watchesDialog);
     m_watchesDialog = nullptr;
+
+    m_interfaceFactory->DeleteAXSPinEm(m_axs_PinEmDialog);
+    m_axs_PinEmDialog = nullptr;
+
+    m_interfaceFactory->DeleteAXSDbgLink(m_axs_DbgLnkDialog);
+    m_axs_DbgLnkDialog = nullptr;
 }
 
 cbDebugInterfaceFactory* DebuggerManager::GetInterfaceFactory()
@@ -1070,6 +1332,19 @@ cbExamineMemoryDlg* DebuggerManager::GetExamineMemoryDialog()
 {
     return m_examineMemoryDialog;
 }
+
+///AXSEM
+axs_cbPinEmDlg* DebuggerManager::GetAXSPinEmDialog()
+{
+    return m_axs_PinEmDialog;
+}
+
+///AXSEM
+axs_cbDbgLink* DebuggerManager::GetAXSDbgLinkDialog()
+{
+    return m_axs_DbgLnkDialog;
+}
+
 
 cbThreadsDlg* DebuggerManager::GetThreadsDialog()
 {
@@ -1130,7 +1405,7 @@ cbDebuggerPlugin* DebuggerManager::GetDebuggerHavingWatch(cb::shared_ptr<cbWatch
         if (it->first->HasWatch(watch))
             return it->first;
     }
-    return NULL;
+    return nullptr;
 }
 
 bool DebuggerManager::ShowValueTooltip(const cb::shared_ptr<cbWatch> &watch, const wxRect &rect)
@@ -1277,8 +1552,11 @@ void DebuggerManager::FindTargetsDebugger()
 
     if (name.empty() || config.empty())
     {
-        log->LogError(wxString::Format(_("Current compiler '%s' doesn't have correctly defined debugger!"),
-                                       compiler->GetName().c_str()));
+        if (compiler->GetID() != wxT("null"))
+        {
+            log->LogError(wxString::Format(_("Current compiler '%s' doesn't have correctly defined debugger!"),
+                                           compiler->GetName().c_str()));
+        }
         m_menuHandler->MarkActiveTargetAsValid(false);
         return;
     }

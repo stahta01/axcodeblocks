@@ -1,6 +1,10 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include
+
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
 
 pluginlibdir = $(pkglibdir)/plugins
 
@@ -14,7 +18,7 @@ pluginlib_LTLIBRARIES = libSmartIndentHDL.la \
 
 libSmartIndentHDL_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libSmartIndentHDL_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libSmartIndentHDL_la_LIBADD = ../../../sdk/libaxcodeblocks.la \
 			$(WX_LIBS)
 
 libSmartIndentHDL_la_SOURCES = SmartIndentHDL.cpp
@@ -23,7 +27,7 @@ libSmartIndentHDL_la_SOURCES = SmartIndentHDL.cpp
 
 libSmartIndentPascal_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libSmartIndentPascal_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libSmartIndentPascal_la_LIBADD = ../../../sdk/libaxcodeblocks.la \
 			$(WX_LIBS)
 
 libSmartIndentPascal_la_SOURCES = SmartIndentPascal.cpp
@@ -32,7 +36,7 @@ libSmartIndentPascal_la_SOURCES = SmartIndentPascal.cpp
 
 libSmartIndentCpp_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libSmartIndentCpp_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libSmartIndentCpp_la_LIBADD = ../../../sdk/libaxcodeblocks.la \
 			$(WX_LIBS)
 
 libSmartIndentCpp_la_SOURCES = SmartIndentCpp.cpp
@@ -41,7 +45,7 @@ libSmartIndentCpp_la_SOURCES = SmartIndentCpp.cpp
 
 libSmartIndentPython_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libSmartIndentPython_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libSmartIndentPython_la_LIBADD = ../../../sdk/libaxcodeblocks.la \
 			$(WX_LIBS)
 
 libSmartIndentPython_la_SOURCES = SmartIndentPython.cpp
@@ -50,7 +54,7 @@ libSmartIndentPython_la_SOURCES = SmartIndentPython.cpp
 
 libSmartIndentLua_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libSmartIndentLua_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libSmartIndentLua_la_LIBADD = ../../../sdk/libaxcodeblocks.la \
 			$(WX_LIBS)
 
 libSmartIndentLua_la_SOURCES = SmartIndentLua.cpp
@@ -59,7 +63,7 @@ libSmartIndentLua_la_SOURCES = SmartIndentLua.cpp
 
 libSmartIndentFortran_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libSmartIndentFortran_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libSmartIndentFortran_la_LIBADD = ../../../sdk/libaxcodeblocks.la \
 			$(WX_LIBS)
 
 libSmartIndentFortran_la_SOURCES = SmartIndentFortran.cpp
@@ -67,7 +71,7 @@ libSmartIndentFortran_la_SOURCES = SmartIndentFortran.cpp
 
 libSmartIndentXML_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libSmartIndentXML_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libSmartIndentXML_la_LIBADD = ../../../sdk/libaxcodeblocks.la \
 			$(WX_LIBS)
 
 libSmartIndentXML_la_SOURCES = SmartIndentXML.cpp

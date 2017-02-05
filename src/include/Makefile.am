@@ -13,7 +13,7 @@ AM_CPPFLAGS = $(WX_CXXFLAGS) \
 			-I$(top_srcdir)/src/sdk/wxscintilla/include \
 			-I$(top_srcdir)/src/include/tinyxml \
 			-I$(top_srcdir)/src/include/scripting/include \
- 			-I$(top_srcdir)/src/include/scripting/sqplus \
+			-I$(top_srcdir)/src/include/scripting/sqplus \
 			-I$(top_srcdir)/src/include/mozilla_chardet \
 			-I$(top_srcdir)/src/include/mozilla_chardet/mfbt \
 			-I$(top_srcdir)/src/include/mozilla_chardet/nsprpub/pr/include \
@@ -27,10 +27,11 @@ AM_CPPFLAGS = $(WX_CXXFLAGS) \
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) \
         $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 
-sdkdir=$(includedir)/codeblocks
+sdkdir=$(includedir)/axcodeblocks
 
 ALLHEADERS = annoyingdialog.h \
 				autodetectcompilers.h \
+				autorevision.h \
 				backgroundthread.h \
 				base64.h \
 				blockallocated.h \
@@ -40,6 +41,7 @@ ALLHEADERS = annoyingdialog.h \
 				cbeditor.h \
 				cbeditorprintout.h \
 				cbexception.h \
+				cbexecute.h \
 				cbfunctor.h \
 				cbplugin.h \
 				cbproject.h \

@@ -72,7 +72,7 @@ void path_split(const char *path, PATHSPLIT *f)
 #ifdef DEPSLIB_WINDOWS
 	/* support UNC filename in windows: ignore leading slashes */
 	while ((*p == '/') || (*p == '\\'))
-        ++p;
+		++p;
 #endif
 	PATHPART *part;
 

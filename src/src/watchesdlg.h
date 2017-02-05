@@ -72,6 +72,8 @@ class WatchesDlg : public wxPanel, public cbWatchesDlg
         wxPropertyGrid *m_grid;
         WatchItems m_watches;
         bool m_append_empty_watch;
+        unsigned int m_col_addrspace;
+        unsigned int m_col_addr;
 };
 
 

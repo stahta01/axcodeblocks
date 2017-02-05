@@ -1,4 +1,4 @@
-sdkdir=$(includedir)/codeblocks/wxContribItems/wxled/led/include/xrc/
+sdkdir=$(includedir)/axcodeblocks/wxContribItems/wxled/led/include/xrc/
 
 sdk_HEADERS = \
 ./xh_ledHandler.h \

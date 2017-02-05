@@ -26,7 +26,7 @@ enum wxLEDColour
 	wxLED_COLOUR_GREY = 7
 };
 
-class wxLEDPanel : public wxControl
+class WXDLLEXPORT wxLEDPanel : public wxControl
 {
 	public:
 		// Ctor

@@ -5,7 +5,7 @@
         <Program name="C"         value="icc8051.exe"/>
         <Program name="CPP"       value="icc8051.exe"/>
         <Program name="LD"        value="xlink.exe"/>
-        <Program name="DBGconfig" value=""/>
+        <Program name="DBGconfig" value="axs_debugger:Default"/>
         <Program name="LIB"       value="xar.exe"/>
         <Program name="WINDRES"   value=""/>
         <Program name="MAKE"      value="make.exe"/>
@@ -14,7 +14,7 @@
         <Program name="C"         value="icc8051"/>
         <Program name="CPP"       value="icc8051"/>
         <Program name="LD"        value="xlink"/>
-        <Program name="DBGconfig" value=""/>
+        <Program name="DBGconfig" value="axs_debugger:Default"/>
         <Program name="LIB"       value="xar"/>
         <Program name="WINDRES"   value=""/>
         <Program name="MAKE"      value="make"/>

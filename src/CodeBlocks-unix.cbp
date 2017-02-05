@@ -3,6 +3,8 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="Code::Blocks wx2.8.x (Unix)" />
+		<Option makefile_is_custom="1" />
+		<Option execution_dir="../obj-linux" />
 		<Option default_target="src" />
 		<Option compiler="gcc" />
 		<Build>
@@ -295,6 +297,24 @@
 					<Add option="`wx-config --version=2.8 --libs`" />
 					<Add option="-Wl,--no-undefined" />
 					<Add library="codeblocks" />
+				</Linker>
+			</Target>
+			<Target title="AXSEM Debugger">
+				<Option output="devel/share/codeblocks/plugins/debuggeraxs" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="devel/share/codeblocks/plugins" />
+				<Option external_deps="devel/libcodeblocks.so;" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add directory="include" />
+					<Add directory="include/scripting/include" />
+					<Add directory="include/scripting/sqplus" />
+				</Compiler>
+				<Linker>
+					<Add option="-z defs" />
+					<Add option="`wx-config --libs`" />
+					<Add library="codeblocks" />
 					<Add directory="devel" />
 				</Linker>
 			</Target>
@@ -495,6 +515,7 @@
 			<Add option="`wx-config --version=2.8 --cflags`" />
 			<Add option="-DcbDEBUG" />
 			<Add option="-DCB_PRECOMP" />
+			<Add option="-std=c++11" />
 			<Add directory="sdk/wxscintilla/include" />
 			<Add directory="sdk/wxpropgrid/include" />
 			<Add directory="include/tinyxml" />
@@ -1787,6 +1808,90 @@
 		<Unit filename="plugins/compilergcc/resources/manifest.xml">
 			<Option target="Compiler" />
 		</Unit>
+		<Unit filename="plugins/debuggeraxs/axs_commands.h">
+			<Option target="AXSEM Debugger" />
+		<Unit filename="plugins/debuggeraxs/axs_driver.cpp">
+			<Option target="AXSEM Debugger" />
+		<Unit filename="plugins/debuggeraxs/axs_driver.h">
+			<Option target="AXSEM Debugger" />
+		<Unit filename="plugins/debuggeraxs/databreakpointdlg.cpp">
+			<Option target="AXSEM Debugger" />
+		<Unit filename="plugins/debuggeraxs/databreakpointdlg.h">
+			<Option target="AXSEM Debugger" />
+		<Unit filename="plugins/debuggeraxs/debugger_defs.cpp">
+			<Option target="AXSEM Debugger" />
+		<Unit filename="plugins/debuggeraxs/debugger_defs.h">
+			<Option target="AXSEM Debugger" />
+		<Unit filename="plugins/debuggeraxs/debuggeraxs.cpp">
+			<Option target="AXSEM Debugger" />
+		<Unit filename="plugins/debuggeraxs/debuggeraxs.h">
+			<Option target="AXSEM Debugger" />
+		<Unit filename="plugins/debuggeraxs/debuggerdriver.cpp">
+			<Option target="AXSEM Debugger" />
+		<Unit filename="plugins/debuggeraxs/debuggerdriver.h">
+			<Option target="AXSEM Debugger" />
+		<Unit filename="plugins/debuggeraxs/debuggeroptionsdlg.cpp">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/debuggeroptionsdlg.h">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/debuggeroptionsprjdlg.cpp">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/debuggeroptionsprjdlg.h">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/debuggerstate.cpp">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/debuggerstate.h">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/editaxsemkeydlg.cpp">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/editaxsemkeydlg.h">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/editbreakpointdlg.cpp">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/editbreakpointdlg.h">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/editwatchdlg.cpp">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/editwatchdlg.h">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/gdb_tipwindow.cpp">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/gdb_tipwindow.h">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/projtargetoptions.h">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/resources/breakpoints.xrc">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/resources/debugger_options_dlg.xrc">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/resources/debugger_project_options_dlg.xrc">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/resources/edit_axskey_dlg.xrc">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/resources/edit_watches_dlg.xrc">
+			<Option target="AXSEM Debugger" />
+		</Unit>
+		<Unit filename="plugins/debuggeraxs/resources/threads.xrc">
+			<Option target="AXSEM Debugger" />
 		<Unit filename="plugins/debuggergdb/cdb_commands.h">
 			<Option target="Debugger" />
 		</Unit>
@@ -3713,6 +3818,17 @@
 		<Unit filename="src/associations.cpp">
 			<Option compile="0" />
 			<Option link="0" />
+
+		<Unit filename="src/axs_dbglink.cpp">
+			<Option target="src" />
+		</Unit>
+		<Unit filename="src/axs_dbglink.h">
+			<Option target="src" />
+		</Unit>
+		<Unit filename="src/axs_pinemdlg.cpp">
+			<Option target="src" />
+		</Unit>
+		<Unit filename="src/axs_pinemdlg.h">
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/associations.h">
@@ -4022,6 +4138,7 @@
 			<code_completion />
 			<envvars />
 			<wxsmith version="1">
+				<gui name="wxWidgets" src="" main="" init_handlers="necessary" language="CPP" />
 				<resources>
 					<wxScrollingDialog wxs="wxsmith/VirtualBuildTargetsDlg.wxs" src="src/virtualbuildtargetsdlg.cpp" hdr="src/virtualbuildtargetsdlg.h" xrc="src/resources/virtualbuildtargetsdlg.xrc" fwddecl="0" i18n="1" name="VirtualBuildTargetsDlg" language="CPP" />
 					<wxScrollingDialog wxs="wxsmith/databreakpointdlg.wxs" src="plugins/debuggergdb/databreakpointdlg.cpp" hdr="plugins/debuggergdb/databreakpointdlg.h" fwddecl="0" i18n="1" name="DataBreakpointDlg" language="CPP" />
@@ -4041,6 +4158,7 @@
 				</resources>
 			</wxsmith>
 			<debugger />
+			<debuggeraxs />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

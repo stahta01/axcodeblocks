@@ -204,6 +204,39 @@ else
 	AC_MSG_RESULT(no)
 fi
 
+AC_MSG_CHECKING(whether to build the default header guard plugin)
+header_guard_default="no"
+AC_ARG_ENABLE(header-guard, [AC_HELP_STRING([--enable-header-guard], [build the default header guard plugin (default NO)])],,
+                       enable_header_guard=$header_guard_default)
+AM_CONDITIONAL([BUILD_HEADERGUARD], [test "x$enable_header_guard" = "xyes"])
+if test "x$enable_header_guard" = "xyes"; then
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+
+AC_MSG_CHECKING(whether to build the default log hacker plugin)
+log_hacker_default="no"
+AC_ARG_ENABLE(log-hacker, [AC_HELP_STRING([--enable-log-hacker], [build the default log hacker plugin (default NO)])],,
+                       enable_log_hacker=$log_hacker_default)
+AM_CONDITIONAL([BUILD_LOGHACKER], [test "x$enable_log_hacker" = "xyes"])
+if test "x$enable_log_hacker" = "xyes"; then
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+
+AC_MSG_CHECKING(whether to build the default ModPoller plugin)
+modpoller_default="no"
+AC_ARG_ENABLE(modpoller, [AC_HELP_STRING([--enable-modpoller], [build the default ModPoller plugin (default NO)])],,
+                       enable_modpoller=$modpoller_default)
+AM_CONDITIONAL([BUILD_MODPOLLER], [test "x$enable_modpoller" = "xyes"])
+if test "x$enable_modpoller" = "xyes"; then
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+
 AC_MSG_CHECKING(whether to build the open files list plugin)
 openfiles_default="yes"
 AC_ARG_ENABLE(open-files-list, [AC_HELP_STRING([--enable-open-files-list], [build the open files list plugin (default YES)])],,
@@ -243,6 +276,17 @@ AC_ARG_ENABLE(scripted-wizard, [AC_HELP_STRING([--enable-scripted-wizard], [buil
                        enable_prw=$prw_default)
 AM_CONDITIONAL([BUILD_SCRIPTEDWIZARD], [test "x$enable_prw" = "xyes"])
 if test "x$enable_prw" = "xyes"; then
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+
+AC_MSG_CHECKING(whether to build the default Tidycmt plugin)
+tidycmt_default="no"
+AC_ARG_ENABLE(tidycmt, [AC_HELP_STRING([--enable-tidycmt], [build the default Tidycmt plugin (default NO)])],,
+                       enable_tidycmt=$tidycmt_default)
+AM_CONDITIONAL([BUILD_TIDYCMT], [test "x$enable_tidycmt" = "xyes"])
+if test "x$enable_tidycmt" = "xyes"; then
 	AC_MSG_RESULT(yes)
 else
 	AC_MSG_RESULT(no)
@@ -332,6 +376,7 @@ AC_DEFUN([BUILD_CONTRIB_NONE], [
 	AM_CONDITIONAL([BUILD_COPYSTRINGS], [false])
 	AM_CONDITIONAL([BUILD_CSCOPE], [false])
 	AM_CONDITIONAL([BUILD_DOXYBLOCKS], [false])
+	AM_CONDITIONAL([BUILD_DEVPAKUPDATER], [false])
 	AM_CONDITIONAL([BUILD_DRAGSCROLL], [false])
 	AM_CONDITIONAL([BUILD_EDITORCONFIG], [false])
 	AM_CONDITIONAL([BUILD_EDITORTWEAKS], [false])
@@ -374,6 +419,7 @@ AC_DEFUN([BUILD_CONTRIB_ALL], [
 	AM_CONDITIONAL([BUILD_COPYSTRINGS], [true])
 	AM_CONDITIONAL([BUILD_CSCOPE], [true])
 	AM_CONDITIONAL([BUILD_DOXYBLOCKS], [true])
+	AM_CONDITIONAL([BUILD_DEVPAKUPDATER], [true])
 	AM_CONDITIONAL([BUILD_DRAGSCROLL], [true])
 	AM_CONDITIONAL([BUILD_EDITORCONFIG], [true])
 	AM_CONDITIONAL([BUILD_EDITORTWEAKS], [true])
@@ -418,7 +464,7 @@ AC_ARG_WITH(contrib-plugins,
   [                        "none", "no", "--without-contrib-plugins" or skipping the parameter at all, ]
   [                        compiles none of the contrib-plugins ]
   [                        Plugin names are: AutoVersioning, BrowseTracker, byogames, Cccc, CppCheck, cbkoders, codesnippets, ]
-  [                        		     codestat, copystrings, Cscope, DoxyBlocks, dragscroll, EditorConfig, EditorTweaks, envvars, ]
+  [                        		     codestat, copystrings, Cscope, DoxyBlocks, devpakupdater, dragscroll, EditorConfig, EditorTweaks, envvars, ]
   [                        		     FileManager, headerfixup, help, hexeditor, incsearch, keybinder, libfinder, MouseSap, ]
   [                        		     NassiShneiderman, ProjectOptionsManipulator, profiler, regex, ReopenEditor, exporter, smartindent, spellchecker, ]
   [                        		     symtab, ThreadSearch, ToolsPlus, Valgrind, wxcontrib, wxsmith, wxsmithcontrib, wxsmithaui ],
@@ -457,6 +503,9 @@ do
 		;;
 	DoxyBlocks)
 		AM_CONDITIONAL([BUILD_DOXYBLOCKS], [true])
+		;;
+	devpakupdater)
+		AM_CONDITIONAL([BUILD_DEVPAKUPDATER], [true])
 		;;
 	dragscroll)
 		AM_CONDITIONAL([BUILD_DRAGSCROLL], [true])
@@ -575,6 +624,9 @@ do
 	-DoxyBlocks)
 		AM_CONDITIONAL([BUILD_DOXYBLOCKS], [false])
 		;;
+	-devpakupdater)
+		AM_CONDITIONAL([BUILD_DEVPAKUPDATER], [false])
+		;;
 	-dragscroll)
 		AM_CONDITIONAL([BUILD_DRAGSCROLL], [false])
 		;;
@@ -687,6 +739,7 @@ AC_SUBST(BUILD_COPYSTRINGS)
 AC_SUBST(BUILD_CPPCHECK)
 AC_SUBST(BUILD_CSCOPE)
 AC_SUBST(BUILD_DOXYBLOCKS)
+AC_SUBST(BUILD_DEVPAKUPDATER)
 AC_SUBST(BUILD_DRAGSCROLL)
 AC_SUBST(BUILD_EDITORCONFIG)
 AC_SUBST(BUILD_EDITORTWEAKS)

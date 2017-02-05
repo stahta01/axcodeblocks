@@ -1,4 +1,4 @@
-sdkdir=$(includedir)/codeblocks/wxContribItems/wxled/ledpanel/include/wx/
+sdkdir=$(includedir)/axcodeblocks/wxContribItems/wxled/ledpanel/include/wx/
 
 sdk_HEADERS = \
 ./advancedmatrixobject.h \

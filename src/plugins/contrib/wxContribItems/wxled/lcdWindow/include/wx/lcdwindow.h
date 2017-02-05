@@ -11,7 +11,7 @@ struct wxDigitData
 };
 
 
-class wxLCDWindow : public wxWindow
+class WXDLLEXPORT wxLCDWindow : public wxWindow
 {
 protected:
 	int mSegmentLen;

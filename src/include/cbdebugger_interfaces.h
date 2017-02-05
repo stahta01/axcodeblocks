@@ -52,6 +52,22 @@ class DLLIMPORT cbCPURegistersDlg
         virtual void Clear() = 0;
         virtual void SetRegisterValue(const wxString& reg_name, const wxString& hexValue, const wxString& interpreted) = 0;
         virtual void EnableWindow(bool enable) = 0;
+
+        // PropGrid Interface
+        virtual void UpdateRegisters() = 0;
+        virtual void SetRootRegister(cbRegister::Pointer reg) = 0;
+        virtual void RefreshUI() = 0;
+
+        virtual void SetChips(const wxArrayString& chips, bool can_autodetect = true) = 0;
+        virtual void SetCurrentChip(const wxString& chip) = 0;
+
+        enum {
+            RegisterRead   = 0x0001,
+            RegisterWrite  = 0x0002,
+            ChipSet        = 0x0004,
+            ChipAutodetect = 0x0008
+        };
+        virtual void EnableInteraction(int flags) = 0;
 };
 
 class DLLIMPORT cbDisassemblyDlg
@@ -88,6 +104,69 @@ class DLLIMPORT cbExamineMemoryDlg
         virtual void AddError(const wxString& err) = 0;
         virtual void AddHexByte(const wxString& addr, const wxString& hexbyte) = 0;
         virtual void EnableWindow(bool enable) = 0;
+
+        virtual void SetInvalid() = 0;
+        virtual wxString GetAddressSpace() = 0;
+        virtual void SetAddressSpaces(const wxArrayString& addrspaces = wxArrayString()) = 0;
+        virtual void SetAddressSpace(const wxString& addrspace) = 0;
+};
+
+class DLLIMPORT axs_cbPinEmDlg
+{
+    public:
+        virtual wxWindow* GetWindow() = 0;
+
+        virtual void SetEnable(bool enabled) = 0;
+        virtual void SetPortB6(bool pdir, bool pout, bool pin) = 0;
+        virtual void SetPortB7(bool pdir, bool pout, bool pin) = 0;
+
+        virtual bool IsEnabled() = 0;
+        virtual bool GetPortB6() = 0;
+        virtual bool GetPortB7() = 0;
+
+        virtual void Reset(bool hard) = 0;
+};
+
+class DLLIMPORT axs_cbDbgLink
+{
+    public:
+        typedef enum
+        {
+            FuncKey_First = 0,
+            FuncKey_F1 = FuncKey_First,
+            FuncKey_F2,
+            FuncKey_F3,
+            FuncKey_F4,
+            FuncKey_F5,
+            FuncKey_F6,
+            FuncKey_F7,
+            FuncKey_F8,
+            FuncKey_F9,
+            FuncKey_F10,
+            FuncKey_F11,
+            FuncKey_F12,
+            FuncKey_Up,
+            FuncKey_Down,
+            FuncKey_Left,
+            FuncKey_Right,
+            FuncKey_PgUp,
+            FuncKey_PgDn,
+            FuncKey_Home,
+            FuncKey_End,
+            FuncKey_Ins,
+            FuncKey_Del,
+            FuncKey_Last = FuncKey_Del
+        } FuncKey_t;
+
+        virtual wxWindow* GetWindow() = 0;
+
+        virtual void AddReceive(const wxString& word) = 0;
+        virtual void AddTransmit(const wxString& word) = 0;
+        virtual void GetTransmit(wxString& word) = 0;
+        virtual void SetTransmitBuffer(unsigned int free, unsigned int count) = 0;
+        virtual void TerminalEnable(bool enabled) = 0;
+        virtual void SetFunctionKey(FuncKey_t key, const wxString& text) = 0;
+        virtual const wxString& GetFunctionKey(FuncKey_t key) = 0;
 };
 
 class DLLIMPORT cbThreadsDlg
@@ -169,6 +248,14 @@ class DLLIMPORT cbDebugInterfaceFactory
 
         virtual cbWatchesDlg* CreateWatches() = 0;
         virtual void DeleteWatches(cbWatchesDlg *dialog) = 0;
+
+        ///AXSEM
+        virtual axs_cbPinEmDlg* CreateAXSPinEm() = 0;
+        virtual void DeleteAXSPinEm(axs_cbPinEmDlg *dialog) = 0;
+
+        ///AXSEM
+        virtual axs_cbDbgLink* CreateAXSDbgLink() = 0;
+        virtual void DeleteAXSDbgLink(axs_cbDbgLink *dialog) = 0;
 
         /** @brief Show new value tooltip
           * @return Return True only if new tooltip was shown, else return False.

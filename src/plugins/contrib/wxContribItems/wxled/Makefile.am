@@ -1,16 +1,20 @@
 SUBDIRS = gizmosled/include/wx/gizmos lcdWindow/include/wx led/include/wx led/include/xrc ledpanel/include/wx
 
-AM_CPPFLAGS = -I$(srcdir)/gizmosled/include \
- $(WX_CXXFLAGS) \
--I$(srcdir)/ledpanel/include \
--I$(srcdir)/lcdWindow/include \
--I$(srcdir)/led/include
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN -DWXMAKINGDLL -DWXMAKINGDLL_GIZMOS -DWXMAKINGDLL_GIZMOS_XRC \
+	-I$(srcdir)/gizmosled/include \
+	-I$(srcdir)/ledpanel/include \
+	-I$(srcdir)/lcdWindow/include \
+	-I$(srcdir)/led/include
 
-wxcontribitemsdir=$(libdir)/codeblocks/wxContribItems
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
+
+wxcontribitemsdir=$(libdir)/axcodeblocks/wxContribItems
 
 wxcontribitems_LTLIBRARIES = libwxled.la
 
-libwxled_la_LDFLAGS = -version-info 0:1:0
+libwxled_la_LDFLAGS = -version-info 0:1:0 -shared -no-undefined
 
 libwxled_la_LIBADD = $(WX_LIBS)
 

@@ -7,6 +7,10 @@
  * $HeadURL$
  */
 
+#ifdef HAVE_CONFIG_H
+        #include "config.h"
+#endif
+
 #include <sdk.h>
 #include "app.h"
 
@@ -65,11 +69,6 @@
 
 #ifndef APP_PREFIX
 #define APP_PREFIX ""
-#endif
-
-#ifdef __WXMSW__
-#include "exchndl.h"         // Crash handler DLL -> includes windows.h, therefore
-#include <wx/msw/winundef.h> // ...include this header file on the NEXT LINE (wxWidgets docs say so)
 #endif
 
 #ifndef __WXMAC__
@@ -370,7 +369,11 @@ bool CodeBlocksApp::LoadConfig()
     wxString data(wxT(APP_PREFIX));
 
     if (platform::windows)
+    {
         data.assign(GetAppPath());
+        data.Replace(_T("\\"), _T("/"), true);
+        data.Replace(_T("/bin"),_T(""));
+    }
     else if (platform::macosx)
     {
         data.assign(GetResourcesDir());                 // CodeBlocks.app/Contents/Resources
@@ -396,7 +399,7 @@ bool CodeBlocksApp::LoadConfig()
             data = env;
     }
 
-    data.append(_T("/share/codeblocks"));
+    data.append(_T("/share/axcodeblocks"));
 
     cfg->Write(_T("data_path"), data);
 
@@ -455,8 +458,21 @@ void CodeBlocksApp::InitDebugConsole()
 
 void CodeBlocksApp::InitExceptionHandler()
 {
-#ifdef __WXMSW__
-    ExcHndlInit();
+#if defined(__WXMSW__)
+    typedef VOID APIENTRY (*EXCHNDLINIT)(void);
+    HINSTANCE hDLL = LoadLibrary(L"exchndl.dll");
+    if (hDLL)
+    {
+        EXCHNDLINIT lpExcHndlInit = (EXCHNDLINIT)GetProcAddress(hDLL, "ExcHndlInit");
+	if (lpExcHndlInit)
+        {
+            lpExcHndlInit();
+        }
+        else
+        {
+            FreeLibrary(hDLL);
+        }
+    }
 #endif
 }
 
@@ -553,15 +569,49 @@ void CodeBlocksApp::InitLocale()
     }
 }
 
+#if 0 && defined(__MINGW32__)
+
+#include <sstream>
+#include <iomanip>
+
+EXCEPTION_DISPOSITION CodeBlocksApp::ExceptionRouter(PEXCEPTION_RECORD pRecord, PEXCEPTION_REGISTRATION pReg, PCONTEXT pContext, PEXCEPTION_RECORD pRecord2)
+{
+    OutputDebugStringA("Exception:");
+    PEXCEPTION_RECORD er(pRecord);
+    while (er) {
+        std::ostringstream oss;
+        oss << std::hex << "  Addr 0x" << std::setw(8) << std::setfill('0') << er->ExceptionAddress
+            << " Code 0x" << std::setw(8) << std::setfill('0') << er->ExceptionCode
+            << " Flags 0x" << std::setw(8) << std::setfill('0') << er->ExceptionFlags
+            << " Info";
+        for (DWORD idx = 0; idx < er->NumberParameters; ++idx)
+        {
+            oss << ' ' << std::setw(8) << std::setfill('0') << er->ExceptionInformation[idx];
+        }
+        OutputDebugStringA(oss.str().c_str());
+        er = er->ExceptionRecord;
+    }
+    return ExceptionContinueExecution;
+}
+
+#endif
+
 bool CodeBlocksApp::OnInit()
 {
+#if 0 && defined(__MINGW32__)
+    m_ExcReg.handler = reinterpret_cast<PEXCEPTION_HANDLER>(ExceptionRouter);
+    // Point the appropriate field in the thread information block to the previously
+    // declared exception registration object
+    asm volatile ("movl %%fs:0, %0" : "=r" (m_ExcReg.prev));
+    asm volatile ("movl %0, %%fs:0" : : "r" (&m_ExcReg));
+#endif
 #ifdef __WXMSW__
     InitCommonControls();
 #endif
 
     wxLog::EnableLogging(true);
 
-    SetAppName(_T("codeblocks"));
+    SetAppName(_T("axcodeblocks"));
 
     s_Loading              = true;
     m_pBatchBuildDialog    = nullptr;
@@ -673,7 +723,7 @@ bool CodeBlocksApp::OnInit()
         if (   Manager::Get()->GetConfigManager(_T("app"))->ReadBool(_T("/environment/single_instance"), true)
             && !parser.Found(_T("multiple-instance")) )
         {
-            const wxString name = wxString::Format(_T("Code::Blocks-%s"), wxGetUserId().wx_str());
+            const wxString name = wxString::Format(_T("AxCode::Blocks-%s"), wxGetUserId().wx_str());
 
             m_pSingleInstance = new wxSingleInstanceChecker(name, ConfigManager::GetTempFolder());
             if (m_pSingleInstance->IsAnotherRunning())
@@ -809,6 +859,10 @@ int CodeBlocksApp::OnExit()
     // ultimate shutdown...
     Manager::Free();
 
+#if 0 && defined(__MINGW32__)
+    asm volatile ("movl %0, %%fs:0" : : "r" (m_ExcReg.prev));
+#endif
+
     // WX docs say that this function's return value is ignored,
     // but we return our value anyway. It might not be ignored at some point...
     return m_Batch ? m_BatchExitCode : 0;
@@ -898,7 +952,7 @@ int CodeBlocksApp::BatchJob()
 
     // find compiler plugin
     PluginsArray arr = Manager::Get()->GetPluginManager()->GetCompilerOffers();
-    if (arr.GetCount() == 0)
+    if (arr.IsEmpty())
         return -2;
 
     cbCompilerPlugin* compiler = static_cast<cbCompilerPlugin*>(arr[0]);
@@ -918,7 +972,7 @@ int CodeBlocksApp::BatchJob()
             for (int i = 0; i < prj->GetBuildTargetsCount(); ++i)
             {
                 ProjectBuildTarget* target = prj->GetBuildTarget(i);
-                if (target->GetTitle().Matches(defTarget))
+                if ( target->GetTitle().Matches(defTarget) )
                 {
                     idx = i;
                     break;
@@ -933,6 +987,8 @@ int CodeBlocksApp::BatchJob()
 
     m_pBatchBuildDialog = m_Frame->GetBatchBuildDialog();
     PlaceWindow(m_pBatchBuildDialog);
+
+    wxString title = _("Building '") + wxFileNameFromPath(wxString(argv[argc-1])) + _("' (target '")  + m_BatchTarget + _T("')");
     wxTaskBarIcon* tbIcon = new wxTaskBarIcon();
     tbIcon->SetIcon(
             #ifdef __WXMSW__
@@ -940,8 +996,10 @@ int CodeBlocksApp::BatchJob()
             #else
                 wxIcon(app),
             #endif // __WXMSW__
-                _("Building ") + wxFileNameFromPath(wxString(argv[argc-1])));
+                title);
 
+    wxString bb_title = m_pBatchBuildDialog->GetTitle();
+    m_pBatchBuildDialog->SetTitle(bb_title + _T(" - ") + title);
     m_pBatchBuildDialog->Show();
 
     if (m_ReBuild)
@@ -1316,9 +1374,9 @@ void CodeBlocksApp::OnAppActivate(wxActivateEvent& event)
         // so : idEditorManagerCheckFiles, EditorManager::OnCheckForModifiedFiles just exist for this workaround
         wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, idEditorManagerCheckFiles);
         wxPostEvent(Manager::Get()->GetEditorManager(), evt);
-        ProjectManagerUI *prjManUI = m_Frame->GetProjectManagerUI();
+        cbProjectManagerUI *prjManUI = m_Frame->GetProjectManagerUI();
         if (prjManUI)
-            prjManUI->CheckForExternallyModifiedProjects();
+            static_cast<ProjectManagerUI*>(prjManUI)->CheckForExternallyModifiedProjects();
     }
     cbEditor* ed = Manager::Get()->GetEditorManager()
                  ? Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor() : nullptr;

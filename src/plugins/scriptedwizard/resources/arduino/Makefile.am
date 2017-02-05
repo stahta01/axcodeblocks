@@ -2,7 +2,8 @@ pkgdatadir = $(datadir)/@PACKAGE@/templates/wizard/arduino
 
 dist_pkgdata_DATA = logo.png \
 		wizard.png \
-		wizard.script
+		wizard.script \
+		wizard.xrc
 
 filesdir = $(pkgdatadir)/files
 

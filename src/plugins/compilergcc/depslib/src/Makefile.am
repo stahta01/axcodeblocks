@@ -1,4 +1,8 @@
+if WIN32
+AM_CFLAGS = -Wall -g -DDEPSLIB_WINDOWS -fno-strict-aliasing
+else
 AM_CFLAGS = -Wall -g -DDEPSLIB_UNIX -fno-strict-aliasing
+endif
 
 noinst_LTLIBRARIES = libdepslib.la
 

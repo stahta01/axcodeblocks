@@ -1,16 +1,20 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN \
 		$(WX_GTK2_CFLAGS) \
 		$(WX_X11_CFLAGS)
+
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
 
 pluginlibdir = $(pkglibdir)/plugins
 
 ##pluginlib_LTLIBRARIES = codesnippets
 ##bin_PROGRAMS = codesnippets
 
-##codesnippets_LIBADD = $(WX_LIBS) ../../../../sdk/libcodeblocks.la
-##codesnippets_LDADD = $(WX_LIBS) ../../../../sdk/libcodeblocks.la
-##codesnippets_LDADD =  -L../../../../sdk ../../../../sdk/libcodeblocks.la \
-##            ../../../../base/tinyxml/libtinyxml.la \
+##codesnippets_LIBADD = $(WX_LIBS) ../../../../sdk/libaxcodeblocks.la
+##codesnippets_LDADD = $(WX_LIBS) ../../../../sdk/libaxcodeblocks.la
+##codesnippets_LDADD = -L../../../../base/tinyxml -ltinyxml \
+##			-L../../../../sdk ../../../../sdk/libaxcodeblocks.la \
 ##			$(WX_LIBS) $(WX_GTK2_LIBS) $(WX_X11_LIBS)
 
 pkgdata_DATA = codesnippets.zip

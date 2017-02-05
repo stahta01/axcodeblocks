@@ -1,13 +1,17 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN -DWXMAKINGDLL_PROPGRID -DwxPG_USE_WXMODULE=0 \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include \
 		$(WXPROPGRID_INCLUDE)
+
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
 
 noinst_LTLIBRARIES = libwxsmith_wxwidgets_properties.la
 
 libwxsmith_wxwidgets_properties_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libwxsmith_wxwidgets_properties_la_LIBADD = ../../../../../sdk/libcodeblocks.la
+libwxsmith_wxwidgets_properties_la_LIBADD = ../../../../../sdk/libaxcodeblocks.la
 
 libwxsmith_wxwidgets_properties_la_SOURCES = \
 ./wxspositionsizeproperty.cpp \

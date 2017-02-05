@@ -158,6 +158,10 @@ const wxEventType cbEVT_DEBUGGER_STARTED = wxNewEventType();
 const wxEventType cbEVT_DEBUGGER_PAUSED = wxNewEventType();
 const wxEventType cbEVT_DEBUGGER_FINISHED = wxNewEventType();
 
+// codecompletion <-> debuggeraxs communication
+const wxEventType cbEVT_FROM_CC_TO_DEBUG = wxNewEventType();
+const wxEventType cbEVT_REQ_WATCH = wxNewEventType();
+
 // logger-related events
 const wxEventType cbEVT_ADD_LOG_WINDOW = wxNewEventType();
 const wxEventType cbEVT_REMOVE_LOG_WINDOW = wxNewEventType();

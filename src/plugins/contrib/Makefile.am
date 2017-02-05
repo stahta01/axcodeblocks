@@ -34,6 +34,10 @@ if BUILD_DOXYBLOCKS
 MAYBE_DOXYBLOCKS=DoxyBlocks
 endif
 
+if BUILD_DEVPAKUPDATER
+MAYBE_DEVPAKUPDATER=devpak_plugin
+endif
+
 if BUILD_DRAGSCROLL
 MAYBE_DRAGSCROLL=dragscroll
 endif
@@ -165,6 +169,7 @@ SUBDIRS = $(MAYBE_AUTOVERSIONING) \
 		$(MAYBE_CPPCHECK) \
 		$(MAYBE_CSCOPE) \
 		$(MAYBE_DOXYBLOCKS) \
+		$(MAYBE_DEVPAKUPDATER) \
 		$(MAYBE_DRAGSCROLL) \
 		$(MAYBE_EDITORCONFIG) \
 		$(MAYBE_EDITORTWEAKS) \
@@ -206,6 +211,7 @@ DIST_SUBDIRS = AutoVersioning \
 		Cscope \
 		devpak_plugin \
 		DoxyBlocks \
+		devpak_plugin \
 		dragscroll \
 		EditorConfig \
 		EditorTweaks \
@@ -239,16 +245,16 @@ DIST_SUBDIRS = AutoVersioning \
 		wxSmithSTC
 
 EXTRA_DIST = rndgen
-if ENABLE_FORTRAN
-EXTRA_DIST += $(srcdir)/FortranProject/*.h \
-		$(srcdir)/FortranProject/*.cpp \
-		$(srcdir)/FortranProject/*.xml \
-		$(srcdir)/FortranProject/*.cbp \
-		$(srcdir)/FortranProject/update* \
-		$(srcdir)/FortranProject/images/*.png \
-		$(srcdir)/FortranProject/images/16x16/*.png \
-		$(srcdir)/FortranProject/images/fortranproject/*.png \
-		$(srcdir)/FortranProject/images/fortranproject/*.f90 \
-		$(srcdir)/FortranProject/resources/*.xrc
-endif
+#if ENABLE_FORTRAN
+#EXTRA_DIST += $(srcdir)/FortranProject/*.h \
+#		$(srcdir)/FortranProject/*.cpp \
+#		$(srcdir)/FortranProject/*.xml \
+#		$(srcdir)/FortranProject/*.cbp \
+#		$(srcdir)/FortranProject/update* \
+#		$(srcdir)/FortranProject/images/*.png \
+#		$(srcdir)/FortranProject/images/16x16/*.png \
+#		$(srcdir)/FortranProject/images/fortranproject/*.png \
+#		$(srcdir)/FortranProject/images/fortranproject/*.f90 \
+#		$(srcdir)/FortranProject/resources/*.xrc
+#endif
 

@@ -15,6 +15,7 @@ class ExamineMemoryDlg : public wxPanel, public cbExamineMemoryDlg
 {
     public:
         ExamineMemoryDlg(wxWindow* parent);
+        ~ExamineMemoryDlg();
 
         wxWindow* GetWindow() { return this; }
 
@@ -28,14 +29,24 @@ class ExamineMemoryDlg : public wxPanel, public cbExamineMemoryDlg
         void AddError(const wxString& err);
         void AddHexByte(const wxString& addr, const wxString& hexbyte);
         void EnableWindow(bool enable);
+
+        void SetInvalid();
+        wxString GetAddressSpace();
+        void SetAddressSpaces(const wxArrayString& addrspaces = wxArrayString());
+        void SetAddressSpace(const wxString& addrspace);
+
+
     protected:
         void OnGo(wxCommandEvent& event);
 
     private:
         wxTextCtrl* m_pText;
+        wxChoice* m_pAddrSpaces;
+        wxStaticText* m_pAddrSpacesDummy;
         size_t m_ByteCounter;
         wxChar m_LineText[67]; // 16*3 "7F " + 3 "   " + 16 "."
         unsigned long m_LastRowStartingAddress;
+        bool m_LastRowStartingAddressValid;
     private:
         DECLARE_EVENT_TABLE()
 };

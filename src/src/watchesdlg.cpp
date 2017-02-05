@@ -142,11 +142,15 @@ class WatchesProperty : public wxStringProperty
 
         WatchesProperty(){}
     public:
-        WatchesProperty(const wxString& label, const wxString& value, cb::shared_ptr<cbWatch> watch, bool readonly) :
+        WatchesProperty(const wxString& label, const wxString& value, cb::shared_ptr<cbWatch> watch, bool readonly, const wxString& col4 = wxEmptyString, const wxString& col5 = wxEmptyString) :
             wxStringProperty(label, wxPG_LABEL, value),
             m_watch(watch),
             m_readonly(readonly)
         {
+            if (!col4.IsEmpty())
+                SetCell(3, new wxPGCell(col4));
+            if (!col5.IsEmpty())
+                SetCell(4, new wxPGCell(col5));
         }
 
         // Set editor to have button
@@ -161,6 +165,26 @@ class WatchesProperty : public wxStringProperty
         cb::shared_ptr<cbWatch> GetWatch() { return m_watch; }
         cb::shared_ptr<const cbWatch> GetWatch() const { return m_watch; }
         void SetWatch(cb::shared_ptr<cbWatch> watch) { m_watch = watch; }
+
+        void SetCol4(const wxString& txt)
+        {
+            if (txt.IsEmpty())
+            {
+                SetCell(3, 0);
+                return;
+            }
+            SetCell(3, new wxPGCell(txt));
+        }
+
+        void SetCol5(const wxString& txt)
+        {
+            if (txt.IsEmpty())
+            {
+                SetCell(4, 0);
+                return;
+            }
+            SetCell(4, new wxPGCell(txt));
+        }
 
     protected:
         cb::shared_ptr<cbWatch> m_watch;
@@ -359,7 +383,9 @@ private:
 
 WatchesDlg::WatchesDlg() :
     wxPanel(Manager::Get()->GetAppWindow(), -1),
-    m_append_empty_watch(false)
+    m_append_empty_watch(false),
+    m_col_addrspace(0),
+    m_col_addr(0)
 {
     wxBoxSizer *bs = new wxBoxSizer(wxVERTICAL);
     m_grid = new wxPropertyGrid(this, idGrid, wxDefaultPosition, wxDefaultSize,
@@ -408,8 +434,32 @@ WatchesDlg::WatchesDlg() :
     colours->RegisterColour(_("Debugger"), _("Watches changed value"), wxT("dbg_watches_changed"), *wxRED);
 }
 
-inline void AppendChildren(wxPropertyGrid &grid, wxPGProperty &property, cbWatch &watch,
-                           bool readonly, const wxColour &changedColour)
+void FindAddrColumnUse(bool &has_addrspace, bool &has_addr, cbWatch const &watch)
+{
+    {
+        wxString as;
+        watch.GetAddrSpace(as);
+        if (!as.IsEmpty())
+            has_addrspace = true;
+    }
+    {
+        wxString addr;
+        watch.GetAddr(addr);
+        if (!addr.IsEmpty())
+            has_addr = true;
+    }
+    if (has_addrspace && has_addr)
+        return;
+    for(int ii = 0; ii < watch.GetChildCount(); ++ii)
+    {
+        cb::shared_ptr<const cbWatch>  child = watch.GetChild(ii);
+        FindAddrColumnUse(has_addrspace, has_addr, *child);
+        if (has_addrspace && has_addr)
+            return;
+    }
+}
+
+inline void AppendChildren(wxPropertyGrid &grid, wxPGProperty &property, cbWatch &watch, bool readonly, const wxColour &changedColour, unsigned int col_addrspace = 0, unsigned int col_addr = 0)
 {
     for(int ii = 0; ii < watch.GetChildCount(); ++ii)
     {
@@ -423,16 +473,29 @@ inline void AppendChildren(wxPropertyGrid &grid, wxPGProperty &property, cbWatch
         wxPGProperty *prop = new WatchesProperty(symbol, value, child, readonly);
         prop->SetExpanded(child->IsExpanded());
         wxPGProperty *new_prop = grid.AppendIn(&property, prop);
+        new_prop->ChangeFlag(wxPG_PROP_DISABLED, watch.IsDisabled());
+        new_prop->ChangeFlag(wxPG_PROP_READONLY, watch.IsReadonly());
         grid.SetPropertyAttribute(new_prop, wxT("Units"), type);
         if (value.empty())
             grid.SetPropertyHelpString(new_prop, wxEmptyString);
         else
             grid.SetPropertyHelpString(new_prop, symbol + wxT("=") + value);
         grid.EnableProperty(new_prop, grid.IsPropertyEnabled(&property));
+        {
+            wxArrayString cols;
+            cols.Add(wxEmptyString);
+            cols.Add(wxEmptyString);
+            if (col_addrspace >= 3 && col_addrspace <= 4)
+                child->GetAddrSpace(cols[col_addrspace - 3]);
+            if (col_addr >= 3 && col_addr <= 4)
+                child->GetAddr(cols[col_addr - 3]);
+            static_cast<WatchesProperty *>(new_prop)->SetCol4(cols[0]);
+            static_cast<WatchesProperty *>(new_prop)->SetCol5(cols[1]);
+        }
 
         if (child->IsChanged())
         {
-            grid.SetPropertyTextColour(prop, changedColour);
+            grid.SetPropertyTextColour(new_prop, changedColour);
             WatchRawDialog::UpdateValue(static_cast<const WatchesProperty*>(prop));
         }
         else
@@ -444,11 +507,11 @@ inline void AppendChildren(wxPropertyGrid &grid, wxPGProperty &property, cbWatch
 #endif
         }
 
-        AppendChildren(grid, *prop, *child.get(), readonly, changedColour);
+        AppendChildren(grid, *prop, *child.get(), readonly, changedColour, col_addrspace, col_addr);
     }
 }
 
-inline void UpdateWatch(wxPropertyGrid *grid, wxPGProperty *property, cb::shared_ptr<cbWatch> watch, bool readonly)
+inline void UpdateWatch(wxPropertyGrid *grid, wxPGProperty *property, cb::shared_ptr<cbWatch> watch, bool readonly, unsigned int col_addrspace = 0, unsigned int col_addr = 0)
 {
     if (!property)
         return;
@@ -460,6 +523,8 @@ inline void UpdateWatch(wxPropertyGrid *grid, wxPGProperty *property, cb::shared
     property->SetLabel(symbol);
     property->SetValue(value);
     property->SetExpanded(watch->IsExpanded());
+    property->ChangeFlag(wxPG_PROP_DISABLED, watch->IsDisabled());
+    property->ChangeFlag(wxPG_PROP_READONLY, watch->IsReadonly());
     watch->GetType(type);
     if (watch->IsChanged())
         grid->SetPropertyTextColour(property, changedColour);
@@ -476,7 +541,17 @@ inline void UpdateWatch(wxPropertyGrid *grid, wxPGProperty *property, cb::shared
         grid->SetPropertyHelpString(property, wxEmptyString);
     else
         grid->SetPropertyHelpString(property, symbol + wxT("=") + value);
-
+    {
+        wxArrayString cols;
+        cols.Add(wxEmptyString);
+        cols.Add(wxEmptyString);
+        if (col_addrspace >= 3 && col_addrspace <= 4)
+            watch->GetAddrSpace(cols[col_addrspace - 3]);
+        if (col_addr >= 3 && col_addr <= 4)
+            watch->GetAddr(cols[col_addr - 3]);
+        static_cast<WatchesProperty*>(property)->SetCol4(cols[0]);
+        static_cast<WatchesProperty*>(property)->SetCol5(cols[1]);
+    }
     property->DeleteChildren();
 
     if (property->GetName() != symbol)
@@ -485,7 +560,7 @@ inline void UpdateWatch(wxPropertyGrid *grid, wxPGProperty *property, cb::shared
         grid->SetPropertyLabel(property, symbol);
     }
 
-    AppendChildren(*grid, *property, *watch, readonly, changedColour);
+    AppendChildren(*grid, *property, *watch, readonly, changedColour, col_addrspace, col_addr);
 
     WatchRawDialog::UpdateValue(static_cast<const WatchesProperty*>(property));
 }
@@ -506,8 +581,28 @@ inline void SetValue(WatchesProperty *prop)
 
 void WatchesDlg::UpdateWatches()
 {
+    bool has_addrspace(false), has_addr(false);
+    {
+        for (WatchItems::iterator it = m_watches.begin(); it != m_watches.end(); ++it)
+        {
+            FindAddrColumnUse(has_addrspace, has_addr, *(it->watch));
+	    if (has_addrspace && has_addr)
+                break;
+        }
+    }
+    m_col_addrspace = m_col_addr = 0;
+    unsigned int nrcol = 3;
+    if (has_addrspace)
+        m_col_addrspace = nrcol++;
+    if (has_addr)
+        m_col_addr = nrcol++;
+    m_grid->SetColumnCount(nrcol);
+    if (m_col_addrspace)
+        m_grid->SetColumnProportion(m_col_addrspace, 10);
+    if (m_col_addr)
+        m_grid->SetColumnProportion(m_col_addr, 20);
     for (WatchItems::iterator it = m_watches.begin(); it != m_watches.end(); ++it)
-        UpdateWatch(m_grid, it->property, it->watch, it->readonly);
+        UpdateWatch(m_grid, it->property, it->watch, it->readonly, m_col_addrspace, m_col_addr);
     m_grid->Refresh();
 }
 
@@ -1013,7 +1108,7 @@ inline wxPGProperty* GetRealRoot(wxPropertyGrid *grid)
     return property ? grid->GetFirstChild(property) : nullptr;
 }
 
-inline void GetColumnWidths(wxClientDC &dc, wxPropertyGrid *grid, wxPGProperty *root, int width[3])
+inline void GetColumnWidths(wxClientDC &dc, wxPropertyGrid *grid, wxPGProperty *root, int width[5])
 {
 #if wxCHECK_VERSION(3, 0, 0)
     wxPropertyGridPageState *state = grid->GetState();
@@ -1021,38 +1116,39 @@ inline void GetColumnWidths(wxClientDC &dc, wxPropertyGrid *grid, wxPGProperty *
     wxPropertyGridState *state = grid->GetState();
 #endif
 
-    width[0] = width[1] = width[2] = 0;
-    int minWidths[3] = { state->GetColumnMinWidth(0),
-                         state->GetColumnMinWidth(1),
-                         state->GetColumnMinWidth(2) };
+    unsigned int nrcol(std::min(grid->GetColumnCount(), (unsigned int)(sizeof(width) / sizeof(width[0]))));
+    int minWidths[sizeof(width) / sizeof(width[0])];
+
+    for (int i = 0; i < sizeof(width) / sizeof(width[0]); ++i)
+    {
+        width[i] = 0;
+        minWidths[i] = (i < nrcol) ? state->GetColumnMinWidth(i) : 0;
+    }
 
     for (unsigned ii = 0; ii < root->GetChildCount(); ++ii)
     {
         wxPGProperty* p = root->Item(ii);
 
-        width[0] = std::max(width[0], state->GetColumnFullWidth(dc, p, 0));
-        width[1] = std::max(width[1], state->GetColumnFullWidth(dc, p, 1));
-        width[2] = std::max(width[2], state->GetColumnFullWidth(dc, p, 2));
+        for (int i = 0; i < nrcol; ++i)
+            width[i] = std::max(width[i], state->GetColumnFullWidth(dc, p, i));
     }
     for (unsigned ii = 0; ii < root->GetChildCount(); ++ii)
     {
         wxPGProperty* p = root->Item(ii);
         if (p->IsExpanded())
         {
-            int w[3];
+            int w[sizeof(width) / sizeof(width[0])];
             GetColumnWidths(dc, grid, p, w);
-            width[0] = std::max(width[0], w[0]);
-            width[1] = std::max(width[1], w[1]);
-            width[2] = std::max(width[2], w[2]);
+            for (int i = 0; i < sizeof(width) / sizeof(width[0]); ++i)
+                width[i] = std::max(width[i], w[i]);
         }
     }
 
-    width[0] = std::max(width[0], minWidths[0]);
-    width[1] = std::max(width[1], minWidths[1]);
-    width[2] = std::max(width[2], minWidths[2]);
+    for (int i = 0; i < sizeof(width) / sizeof(width[0]); ++i)
+        width[i] = std::max(width[i], minWidths[i]);
 }
 
-inline void GetColumnWidths(wxPropertyGrid *grid, wxPGProperty *root, int width[3])
+inline void GetColumnWidths(wxPropertyGrid *grid, wxPGProperty *root, int width[5])
 {
     wxClientDC dc(grid);
     dc.SetFont(grid->GetFont());
@@ -1072,9 +1168,9 @@ inline void SetMinSize(wxPropertyGrid *grid)
     if (!grid->IsPropertyExpanded(p))
         height += 2 * grid->GetVerticalSpacing();
 
-    int width[3];
+    int width[5];
     GetColumnWidths(grid, grid->GetRoot(), width);
-    rect.width = std::accumulate(width, width+3, 0);
+    rect.width = std::accumulate(width, width+5, 0);
 
     int minWidth = (wxSystemSettings::GetMetric(wxSYS_SCREEN_X, grid->GetParent())*3)/2;
     int minHeight = (wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, grid->GetParent())*3)/2;
@@ -1086,13 +1182,12 @@ inline void SetMinSize(wxPropertyGrid *grid)
 #endif
     grid->SetMinSize(size);
 
-    int proportions[3];
-    proportions[0] = static_cast<int>(floor((double)width[0]/size.x*100.0+0.5));
-    proportions[1] = static_cast<int>(floor((double)width[1]/size.x*100.0+0.5));
-    proportions[2]= std::max(100 - proportions[0] - proportions[1], 0);
-    grid->SetColumnProportion(0, proportions[0]);
-    grid->SetColumnProportion(1, proportions[1]);
-    grid->SetColumnProportion(2, proportions[2]);
+    int proportions[5];
+    for (int i = 0; i < 4; ++i)
+        proportions[i] = static_cast<int>(floor((double)width[i]/size.x*100.0+0.5));
+    proportions[4]= std::max(100 - std::accumulate(proportions, proportions + 4, 0), 0);
+    for (int i = 0; i < 5; ++i)
+        grid->SetColumnProportion(i, proportions[i]);
     grid->ResetColumnSizes(true);
 }
 

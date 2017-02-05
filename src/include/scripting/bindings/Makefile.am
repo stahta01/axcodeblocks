@@ -1,4 +1,4 @@
-sdkdir=$(includedir)/codeblocks/scripting/bindings
+sdkdir=$(includedir)/axcodeblocks/scripting/bindings
 
 noinst_HEADERS = scriptbindings.h
 

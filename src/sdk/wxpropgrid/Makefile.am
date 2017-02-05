@@ -1,10 +1,23 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
-		-I$(top_srcdir)/src/sdk/wxpropgrid/include \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DWXMAKINGLIB_PROPGRID -DwxPG_USE_WXMODULE=0 -DwxPG_SUPPORT_TOOLTIPS -DEXPORT_LIB \
+		-I$(top_srcdir)/src/sdk/wxpropgrid/include
 		-DEXPORT_LIB \
 		-DwxPG_SUPPORT_TOOLTIPS
 
-noinst_LTLIBRARIES = libwxpropgrid.la
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS)
 
+if WIN32
+lib_LTLIBRARIES = libwxpropgrid.la
+win32_dlls_ldflags = -Wl,--export-all-symbols
+else
+noinst_LTLIBRARIES = libwxpropgrid.la
+win32_dlls_ldflags =
+endif
+
+libwxpropgrid_la_LDFLAGS = $(win32_dlls_ldflags) -no-undefined
+
+libwxpropgrid_la_LIBADD = $(WX_LIBS)
 libwxpropgrid_la_SOURCES = ./src/advprops.cpp \
 			./src/editors.cpp \
 			./src/extras.cpp \
@@ -17,7 +30,7 @@ libwxpropgrid_la_SOURCES = ./src/advprops.cpp \
 EXTRA_DIST = ./readme.txt \
 			./changes.txt
 
-sdkdir=$(includedir)/codeblocks/wxpropgrid/include/wx/propgrid/
+sdkdir=$(includedir)/axcodeblocks/wxpropgrid/include/wx/propgrid/
 
 sdk_HEADERS = ./include/wx/propgrid/advprops.h \
 			./include/wx/propgrid/editors.h \

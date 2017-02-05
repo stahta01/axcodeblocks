@@ -1,4 +1,4 @@
-sdkdir=$(includedir)/codeblocks/wxContribItems/KWIC/include//wx/xrc
+sdkdir=$(includedir)/axcodeblocks/wxContribItems/KWIC/include//wx/xrc
 
 sdk_HEADERS = \
 .//xh_kwxangularmeterhandler.h \

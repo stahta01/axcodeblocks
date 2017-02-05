@@ -1,12 +1,18 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN -DWXMAKINGDLL_SPELLCHECK -DwxPDF_USE_WXMODULE=0 \
 		$(CB_HUNSPELL_CFLAGS) \
 		-I$(srcdir)/include \
 		-I$(srcdir)/.. \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include
 
-CXXFLAGS = @CXXFLAGS@ -DHUNSPELL_STATIC
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
+
+pluginlibdir = $(pkglibdir)/plugins
 
 noinst_LTLIBRARIES = libwxSpellChecker.la
+
+libwxSpellChecker_la_LDFLAGS = -version-info 0:1:0 -static -no-undefined -avoid-version $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@ @WIN32_GDI@
 
 libwxSpellChecker_la_LIBADD = $(WX_LIBS) \
                             $(CB_HUNSPELL_LIBS)

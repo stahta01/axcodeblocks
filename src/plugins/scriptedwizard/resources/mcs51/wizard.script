@@ -129,7 +129,7 @@ function SetupProject(project)
         if (PLATFORM_MSW == PLATFORM)
             pb_hex = _T("cmd /c \"packihx <$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).ihx >$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).hex\"");
         else
-            pb_hex = _T("packihx <$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).ihx >$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).hex");
+            pb_hex = _T("sdcc-packihx <$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).ihx >$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).hex");
 
         // Project compiler options
         project.AddCompilerOption(_T("-mmcs51"));

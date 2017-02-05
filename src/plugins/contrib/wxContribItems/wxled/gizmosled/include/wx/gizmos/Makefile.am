@@ -1,4 +1,4 @@
-sdkdir=$(includedir)/codeblocks/wxContribItems/wxled/gizmosled/include/wx/gizmos/
+sdkdir=$(includedir)/axcodeblocks/wxContribItems/wxled/gizmosled/include/wx/gizmos/
 
 sdk_HEADERS = \
 ./gizmos.h \

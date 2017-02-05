@@ -223,6 +223,8 @@ private:
      * this event usually be fired when the task pool becomes empty
      */
     void OnParserEnd(wxCommandEvent& event);
+    
+    void OnWatchReq(CodeBlocksEvent& event);    /// ADDED by E.P. see implementation for more details
 
     /** receive event from SystemHeadersThread */
     void OnSystemHeadersThreadUpdate(CodeBlocksThreadEvent& event);

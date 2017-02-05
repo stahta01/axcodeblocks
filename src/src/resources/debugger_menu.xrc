@@ -63,6 +63,14 @@
       <label>Set next statement</label>
       <help>Move the Program counter to the selected/current line</help>
     </object>
+    <object class="wxMenuItem" name="idDebuggerMenuHWR">
+      <label>Hardware Reset</label>
+      <help>Issue a Hardware Reset to the target</help>
+    </object>
+    <object class="wxMenuItem" name="idDebuggerMenuSWR">
+      <label>Software Reset</label>
+      <help>Issue a Software Reset to the target</help>
+    </object>
     <object class="separator"/>
     <object class="wxMenuItem" name="idDebuggerMenuToggleBreakpoint">
       <label>Toggle breakpoint</label>

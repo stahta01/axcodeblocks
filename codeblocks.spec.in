@@ -283,6 +283,7 @@ wxSmith-plugins and to use the wxContribItems in own programs.
 %{plugindir}/libcodecompletion.so
 %{plugindir}/libcompiler.so
 %{plugindir}/libdebugger.so
+%{plugindir}/libdebuggeraxs.*
 %{plugindir}/libdefaultmimehandler.so
 %{plugindir}/liboccurrenceshighlighting.so
 %{plugindir}/libopenfileslist.so
@@ -434,7 +435,6 @@ wxSmith-plugins and to use the wxContribItems in own programs.
 
 %files devel
 %defattr(-,root,root)
-%{_libdir}/libcodeblocks.so
 %{_libdir}/pkgconfig/codeblocks.pc
 %{_includedir}/%{name}/*
 
@@ -447,6 +447,7 @@ wxSmith-plugins and to use the wxContribItems in own programs.
 %{_libdir}/libwxsmithlib.so
 %{_libdir}/pkgconfig/wxsmith-contrib.pc
 %{_includedir}/wxsmith/*
+%{_includedir}/wxSmithContribItems/*
 
 %changelog
 * Tue Dec 23 2014 jens <jens@codeblocks.org>

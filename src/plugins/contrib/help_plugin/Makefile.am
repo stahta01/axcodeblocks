@@ -7,12 +7,16 @@ if ! HAVE_ZLIB
 SUBDIRS += zlib
 endif
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include \
 		-I$(top_srcdir)/src/include/scripting/include \
 		-I$(top_srcdir)/src/include/scripting/bindings \
 		-I$(top_srcdir)/src/include/scripting/sqplus
+
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
 
 pluginlibdir = $(pkglibdir)/plugins
 
@@ -20,7 +24,7 @@ pluginlib_LTLIBRARIES = libhelp_plugin.la
 
 libhelp_plugin_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libhelp_plugin_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libhelp_plugin_la_LIBADD = ../../../sdk/libaxcodeblocks.la \
 					$(WX_LIBS)
 
 

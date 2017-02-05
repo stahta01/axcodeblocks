@@ -16,6 +16,7 @@ class DebuggerMenuHandler : public wxEvtHandler, public cbDebuggerMenuHandler
 {
     public:
         DebuggerMenuHandler();
+        ~DebuggerMenuHandler();
 
         void RegisterDefaultWindowItems();
         void AppendWindowMenuItems(wxMenu &menu);
@@ -50,6 +51,17 @@ class DebuggerMenuHandler : public wxEvtHandler, public cbDebuggerMenuHandler
         void OnAttachToProcess(wxCommandEvent& event);
         void OnDetachFromProcess(wxCommandEvent& event);
         void OnAddWatch(wxCommandEvent& event);
+        void OnAddScopedWatch(CodeBlocksEvent& event);
+        bool TryScopedWatch(const wxString& src);
+
+        ///AXS
+        void OnAXS_HWR(wxCommandEvent& event);
+        void OnAXS_SWR(wxCommandEvent& event);
+
+        ///GDB
+        ///AXS
+        void OnAXSPinEm(wxCommandEvent& event);
+        void OnAXSDebuggerLink(wxCommandEvent& event);
 
         void OnActiveDebuggerClick(wxCommandEvent& event);
         void OnActiveDebuggerTargetsDefaultClick(wxCommandEvent& event);
@@ -88,6 +100,10 @@ class DebuggerToolbarHandler : public wxEvtHandler
 
         wxToolBar *m_Toolbar;
         DebuggerMenuHandler *m_menuHandler;
+        wxToolBarToolBase *m_toolRunToCursor;
+        wxToolBarToolBase *m_toolStepIntoInstr;
+        wxToolBarToolBase *m_toolHardwareReset;
+        wxToolBarToolBase *m_toolSoftwareReset;
 
         DECLARE_EVENT_TABLE();
 };

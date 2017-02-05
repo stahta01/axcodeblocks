@@ -56,6 +56,7 @@ class cbStackFrame;
 class cbStatusBar;
 class cbThread;
 class cbWatch;
+class cbRegister;
 class Compiler;
 class CompileTargetBase;
 class ConfigManagerWrapper;
@@ -384,7 +385,14 @@ struct cbDebuggerFeature
         Watches,
         ValueTooltips,
         RunToCursor,
-        SetNextStatement
+        SetNextStatement,
+        StepIntoInstr,
+        HardwareReset,
+        SoftwareReset,
+        DebugLink,
+        PinEmulation,
+        ScopedWatch,
+        CanAttach
     };
 };
 
@@ -478,6 +486,36 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
         /** @brief Get the exit code of the last debug process. */
         virtual int GetExitCode() const = 0;
 
+        /// FOLLOWING FUNCTIONS ARE NEEDED BY THE AXSEM DEBUGGER
+        struct DebuggerToolbarTools
+        {
+            enum
+            {
+                None          = 0,
+                All           = 0x1FFF,
+                Debug         = 1 << 0,
+                RunToCursor   = 1 << 1,
+                Next          = 1 << 2,
+                NextInstr     = 1 << 3,
+                StepIntoInstr = 1 << 4,
+                Step          = 1 << 5,
+                StepOut       = 1 << 6,
+                Stop          = 1 << 7,
+                Break         = 1 << 8,
+                HWR           = 1 << 9,
+                SWR           = 1 << 10,
+                Continue      = 1 << 11,
+                DebuggerIdle  = 1 << 12
+            };
+        };
+
+        virtual int GetEnabledTools();
+        virtual bool IsHalted();
+
+        virtual void HWReset() {}
+        virtual void SWReset() {}
+        /// END
+
         // stack frame calls;
         virtual int GetStackFrameCount() const = 0;
         virtual cb::shared_ptr<const cbStackFrame> GetStackFrame(int index) const = 0;
@@ -520,6 +558,13 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
         virtual void CollapseWatch(cb::shared_ptr<cbWatch> watch) = 0;
         virtual void UpdateWatch(cb::shared_ptr<cbWatch> watch) = 0;
 
+        // registers
+        virtual void ExpandRegister(cb::shared_ptr<cbRegister> reg) = 0;
+        virtual void CollapseRegister(cb::shared_ptr<cbRegister> reg) = 0;
+        virtual bool SetRegisterValue(cb::shared_ptr<cbRegister> reg, const wxString &value) = 0;
+        virtual void UpdateRegister(cb::shared_ptr<cbRegister> reg) = 0;
+        virtual void SetChip(const wxString& chip) = 0;
+
         struct WatchesDisabledMenuItems
         {
             enum
@@ -541,7 +586,7 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
 
         virtual void SendCommand(const wxString& cmd, bool debugLog) = 0;
 
-        virtual void AttachToProcess(const wxString& pid) = 0;
+        virtual void AttachToProcess() = 0;
         virtual void DetachFromProcess() = 0;
         virtual bool IsAttachedToProcess() const = 0;
 
@@ -583,7 +628,9 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
             Disassembly,
             ExamineMemory,
             Threads,
-            Watches
+            Watches,
+            DebugLink,
+            PinEmulation
         };
 
         virtual void RequestUpdate(DebugWindows window) = 0;
@@ -599,7 +646,7 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
             SyncFileUnknown
         };
 
-        SyncEditorResult SyncEditor(const wxString& filename, int line, bool setMarker = true);
+        SyncEditorResult SyncEditor(const wxString& filename, int line, bool setMarker = true, int line_end = -1);
 
         void BringCBToFront();
 

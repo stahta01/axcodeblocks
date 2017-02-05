@@ -1,6 +1,7 @@
 SUBDIRS = arduino \
 	arm \
 	avr \
+	axs \
 	c_file \
 	console \
 	d \

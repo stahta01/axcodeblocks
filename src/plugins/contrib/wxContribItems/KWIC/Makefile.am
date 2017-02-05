@@ -1,13 +1,17 @@
 SUBDIRS = include/wx/KWIC include/wx/xrc
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN \
 		-I$(srcdir)/include
 
-wxcontribitemsdir=$(libdir)/codeblocks/wxContribItems
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
+
+wxcontribitemsdir=$(libdir)/axcodeblocks/wxContribItems
 
 wxcontribitems_LTLIBRARIES = libwxkwic.la
 
-libwxkwic_la_LDFLAGS = -version-info 0:1:0
+libwxkwic_la_LDFLAGS = -version-info 0:1:0 -shared -no-undefined
 
 libwxkwic_la_LIBADD = $(WX_LIBS)
 

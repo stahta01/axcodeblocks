@@ -2,7 +2,7 @@ AC_PREREQ(2.50)
 
 m4_include([revision.m4])
 
-AC_INIT([codeblocks], SVN_REVISION)
+AC_INIT([axcodeblocks], SVN_REVISION)
 
 AC_CANONICAL_TARGET
 
@@ -31,6 +31,9 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_AWK
 
+m4_include([ax_cxx_compile_stdcxx.m4])
+AX_CXX_COMPILE_STDCXX(11, noext)
+
 CODEBLOCKS_CHECK_LINK_FLAG([-Wl,--no-undefined],[LDFLAGS="-Wl,--no-undefined $LDFLAGS"])
 
 CODEBLOCKS_CHECK_DEBUG
@@ -52,11 +55,15 @@ AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
 AC_C_VOLATILE
+LT_PROG_RC
+
+AC_CYGWIN
+AC_MINGW32
+AC_EXEEXT
+AC_OBJEXT
 
 dnl Checks for library functions.
 AC_FUNC_CLOSEDIR_VOID
-AC_FUNC_MALLOC
-AC_FUNC_MEMCMP
 AC_FUNC_STAT
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([atexit getcwd isascii memchr memmove memset strcasecmp strchr strcspn strdup strrchr strstr])
@@ -92,7 +99,7 @@ CODEBLOCKS_ENABLE_SETTINGS
 
 AM_OPTIONS_WXCONFIG
 AM_PATH_WXCONFIG(2.8.12, wxWin=1)
-        if test "$wxWin" != 1; then
+    if test "$wxWin" != 1; then
         AC_MSG_ERROR([
                 wxWidgets must be installed on your system.
 
@@ -231,6 +238,41 @@ case $WX_BASENAME in
     ;;
     *wx_msw*)
         AC_MSG_RESULT(wxMSW)
+		dnl
+		dnl pkg-config no longer needed by debugger plugin
+		dnl but is needed by others
+		dnl
+		dnl only do this if it is really needed
+		dnl AM_CONDITIONAL adds _TRUE and _FALSE to the appropriate variables
+		dnl if the condition is true, the *_TRUE variable is empty (!)
+		if test "x$BUILD_SPELLCHECKER_TRUE" = "x" ; then
+
+			AC_CHECK_PROG(HAVE_PKG_CONFIG, pkg-config, yes, no)
+
+			ifdef([PKG_CHECK_MODULES],[],[
+				define([PKG_CHECK_MODULES],
+				[ echo "You don't have pkg.m4 properly installed" >&2
+					exit 1
+				])
+			])
+
+            dnl acoording to pkg-config's manpage this call is bsolutely needed:
+            dnl
+            dnl "Note that if there is a possibility the first call to
+            dnl PKG_CHECK_MODULES might not happen, you should be sure
+            dnl to include an explicit call to PKG_PROG_PKG_CONFIG"
+			PKG_PROG_PKG_CONFIG
+
+			if test "x$BUILD_SPELLCHECKER_TRUE" = "x" ; then
+				if test "x$HAVE_PKG_CONFIG" = "xyes"; then
+					PKG_CHECK_MODULES([HUNSPELL], [hunspell])
+				fi
+			fi
+
+    	fi
+
+		CB_HUNSPELL_CFLAGS="$HUNSPELL_CFLAGS"
+		CB_HUNSPELL_LIBS="$HUNSPELL_LIBS"
     ;;
     *wx_mac*)
         AC_MSG_RESULT(wxMac)
@@ -333,10 +375,25 @@ CPPFLAGS="$CPPFLAGS -ansi -DTIXML_USE_STL"
 CXXFLAGS="$CXXFLAGS $PCH_FLAGS $PIC_FLAGS -fexceptions"
 AC_SUBST(codeblocks_PCH_FLAGS, "$PCH_FLAGS")
 
+AC_CHECK_LIB([gdi32],[main],[WIN32_GDI="-lgdi32"],[WIN32_GDI=""])
+AC_CHECK_LIB([shfolder],[main],[WIN32_SHFOLDER="-lshfolder"],[WIN32_SHFOLDER=""])
+WIN32_DLLLDFLAGS=""
+WIN32_DLLEXPSTDCALL=""
+if test x$CYGWIN = xyes -o x$MINGW32 = xyes; then
+   WIN32_DLLLDFLAGS="-Wl,--enable-auto-image-base -Wl,--export-all-symbols -Wl,--enable-auto-import"
+   WIN32_DLLEXPSTDCALL="-Wl,--add-stdcall-alias"
+fi
+AC_SUBST(WIN32_GDI)
+AC_SUBST(WIN32_SHFOLDER)
+AC_SUBST(WIN32_DLLLDFLAGS)
+AC_SUBST(WIN32_DLLEXPSTDCALL)
+
 dnl AM_PATH_GTK(1.2.7, ,
 dnl             AC_MSG_ERROR(Cannot find GTK: Is gtk-config in path?),
 dnl             gthread)
 
+AM_CONDITIONAL([CROSSCOMP], [test x$cross_compiling = xyes])
+AM_CONDITIONAL([WIN32], [test x$CYGWIN = xyes -o x$MINGW32 = xyes])
 AC_MSG_NOTICE([Configuring Code::Blocks...])
 AC_MSG_NOTICE(SVN revision SVN_REVISION (SVN_DATE))
 AC_SUBST(REVISION, SVN_REV)
@@ -385,10 +442,15 @@ AC_CONFIG_FILES([Makefile
 	src/plugins/compilergcc/depslib/Makefile
 	src/plugins/compilergcc/depslib/src/Makefile
 	src/plugins/compilergcc/resources/Makefile
+	src/plugins/debuggeraxs/Makefile
+	src/plugins/debuggeraxs/resources/Makefile
 	src/plugins/debuggergdb/Makefile
 	src/plugins/debuggergdb/resources/Makefile
 	src/plugins/defaultmimehandler/Makefile
 	src/plugins/defaultmimehandler/resources/Makefile
+	src/plugins/headerguard/Makefile
+	src/plugins/loghacker/Makefile
+	src/plugins/modpoller/Makefile
 	src/plugins/openfileslist/Makefile
 	src/plugins/occurrenceshighlighting/Makefile
 	src/plugins/occurrenceshighlighting/resources/Makefile
@@ -399,6 +461,7 @@ AC_CONFIG_FILES([Makefile
 	src/plugins/scriptedwizard/resources/arduino/Makefile
 	src/plugins/scriptedwizard/resources/arm/Makefile
 	src/plugins/scriptedwizard/resources/avr/Makefile
+	src/plugins/scriptedwizard/resources/axs/Makefile
 	src/plugins/scriptedwizard/resources/c_file/Makefile
 	src/plugins/scriptedwizard/resources/console/Makefile
 	src/plugins/scriptedwizard/resources/d/Makefile
@@ -438,6 +501,7 @@ AC_CONFIG_FILES([Makefile
 	src/plugins/scriptedwizard/resources/tricore/Makefile
 	src/plugins/scriptedwizard/resources/win32gui/Makefile
 	src/plugins/scriptedwizard/resources/wxwidgets/Makefile
+	src/plugins/tidycmt/Makefile
 	src/plugins/todo/Makefile
 	src/plugins/todo/resources/Makefile
 	src/plugins/abbreviations/Makefile
@@ -553,7 +617,7 @@ AC_CONFIG_FILES([Makefile
 	src/templates/unix/Makefile
 	src/templates/win32/Makefile
 	src/wxsmith/Makefile
-	codeblocks.pc
+	axcodeblocks.pc
 	codeblocks.spec
 	codeblocks.plist
 ])

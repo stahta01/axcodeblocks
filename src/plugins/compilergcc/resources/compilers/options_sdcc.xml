@@ -1,21 +1,21 @@
-﻿<?xml version="1.0"?>
+<?xml version="1.0"?>
 <!DOCTYPE CodeBlocks_compiler_options>
 <CodeBlocks_compiler_options>
     <if platform="windows">
         <Program name="C"         value="sdcc.exe"/>
         <Program name="CPP"       value="sdcc.exe"/>
         <Program name="LD"        value="sdcc.exe"/>
-        <Program name="DBGconfig" value=""/>
+        <Program name="DBGconfig" value="axs_debugger:Default"/>
         <Program name="LIB"       value="sdcclib.exe"/>
         <Program name="WINDRES"   value=""/>
         <Program name="MAKE"      value="make.exe"/>
     </if>
     <else>
-        <Program name="C"         value="sdcc"/>
-        <Program name="CPP"       value="sdcc"/>
-        <Program name="LD"        value="sdcc"/>
-        <Program name="DBGconfig" value=""/>
-        <Program name="LIB"       value="sdcclib"/>
+        <Program name="C"         value="sdcc-sdcc"/>
+        <Program name="CPP"       value="sdcc-sdcc"/>
+        <Program name="LD"        value="sdcc-sdcc"/>
+        <Program name="DBGconfig" value="axs_debugger:Default"/>
+        <Program name="LIB"       value="sdcc-sdcclib"/>
         <Program name="WINDRES"   value=""/>
         <Program name="MAKE"      value="make"/>
     </else>
@@ -25,14 +25,14 @@
     <Switch name="linkLibs"                value="-l"/>
     <Switch name="defines"                 value="-D"/>
     <Switch name="genericSwitch"           value="-"/>
-    <Switch name="objectExtension"         value="o"/>
+    <Switch name="objectExtension"         value="rel"/>
     <Switch name="needDependencies"        value="true"/>
     <Switch name="forceCompilerUseQuotes"  value="false"/>
     <Switch name="forceLinkerUseQuotes"    value="false"/>
     <Switch name="logging"                 value="default"/>
     <Switch name="libPrefix"               value="lib"/>
     <Switch name="libExtension"            value="lib"/>
-    <Switch name="linkerNeedsLibPrefix"    value="false"/>
+    <Switch name="linkerNeedsLibPrefix"    value="true"/>
     <Switch name="linkerNeedsLibExtension" value="false"/>
 
     <!-- Summary of SDCC options: http://sdcc.sourceforge.net -->

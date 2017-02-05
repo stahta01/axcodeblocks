@@ -21,6 +21,7 @@
 #include <wx/utils.h>
 #include <wx/uri.h>
 #include <wx/xml/xml.h>
+#include <wx/tokenzr.h>
 
 #ifndef CB_PRECOMP
     #include <wx/app.h>
@@ -66,6 +67,7 @@
 #include "compilerKeilC51.h"
 #include "compilerIAR.h"
 #include "compilerICC.h"
+#include "compilerSDCC.h"
 #include "compilerGDC.h"
 #include "compilerGNUFortran.h"
 #include "compilerG95.h"
@@ -688,8 +690,13 @@ void CompilerGCC::TextURL(wxTextUrlEvent& event)
 
 void CompilerGCC::SetupEnvironment()
 {
-    Compiler* compiler = CompilerFactory::GetCompiler(m_CompilerId);
+    // Special case so "No Compiler" is valid, but I'm not sure there is
+    // any valid reason to continue with this function.
+    // If we do continue there are wx3 asserts, because of empty paths.
+    if (m_CompilerId == wxT("null"))
+        return;
 
+    Compiler* compiler = CompilerFactory::GetCompiler(m_CompilerId);
     if (!compiler)
         return;
 
@@ -719,12 +726,7 @@ void CompilerGCC::SetupEnvironment()
 
     // Get configured masterpath, expand macros and remove trailing separators
     wxString masterPath = compiler->GetMasterPath();
-    bool isNoComp = false;
-    if (m_CompilerId == wxT("null")) // Special case so "No Compiler" is valid
-    {
-        isNoComp = true;
-        masterPath.Clear();
-    }
+
     Manager::Get()->GetMacrosManager()->ReplaceMacros(masterPath);
     while (   !masterPath.IsEmpty()
            && ((masterPath.Last() == '\\') || (masterPath.Last() == '/')) )
@@ -781,7 +783,7 @@ void CompilerGCC::SetupEnvironment()
     /* TODO (jens#1#): Is the above correct ?
        Or should we search in the whole systempath (pathList in this case) for the executable? */
     // Try again...
-    if ((binPath.IsEmpty() || (pathList.Index(binPath, caseSens)==wxNOT_FOUND)) && !isNoComp)
+    if ((binPath.IsEmpty() || (pathList.Index(binPath, caseSens)==wxNOT_FOUND)))
     {
         InfoWindow::Display(_("Environment error"),
                             _("Can't find compiler executable in your configured search path's for ") + compiler->GetName() + _T('\n'));
@@ -869,6 +871,7 @@ void CompilerGCC::DoRegisterCompilers()
         CompilerFactory::RegisterCompiler(new CompilerIAR(wxT("ARM")));
     }
     CompilerFactory::RegisterCompiler(new CompilerICC);
+    CompilerFactory::RegisterCompiler(new CompilerSDCC);
     CompilerFactory::RegisterCompiler(new CompilerGDC);
     CompilerFactory::RegisterCompiler(new CompilerGNUFortran);
     CompilerFactory::RegisterCompiler(new CompilerG95);
@@ -1319,9 +1322,16 @@ int CompilerGCC::DoRunQueue()
 
     // create a new process
 
-    m_CompilerProcessList.at(procIndex).OutputFile =
-        (cmd->isLink && cmd->target) ? cmd->target->GetOutputFilename()
-                                     : wxString(wxEmptyString);
+    m_CompilerProcessList.at(procIndex).StartTime = wxDateTime::UNow();
+    m_CompilerProcessList.at(procIndex).OutputFile = wxEmptyString;
+    if (cmd->isLink && cmd->target)
+    {
+        wxString fn(cmd->target->GetOutputFilename());
+        m_CompilerProcessList.at(procIndex).OutputFile = fn;
+        bool rmfile(wxRemoveFile(fn));
+        if (false)
+            LogMessage(_T("Removing file ") + fn + _T(": ") + (rmfile ? _T("success") : _T("failed")), cltInfo);
+    }
     m_CompilerProcessList.at(procIndex).pProcess =
         new PipedProcess(&(m_CompilerProcessList.at(procIndex).pProcess), this, idGCCProcess1 + procIndex, pipe, dir);
     m_CompilerProcessList.at(procIndex).PID     =
@@ -3702,8 +3712,26 @@ void CompilerGCC::OnJobEnd(size_t procIndex, int exitCode)
 
     wxString oFile = UnixFilename(m_CompilerProcessList.at(procIndex).OutputFile);
     Manager::Get()->GetMacrosManager()->ReplaceMacros(oFile); // might contain macros!
+    // Axsem: hack to succeed commands that actually produce an output file
+    if (!success && !oFile.IsEmpty())
+    {
+        wxFileName fn(oFile);
+        wxDateTime dmod;
+        if (fn.IsFileReadable() && fn.GetTimes(0, &dmod, 0))
+        {
+            wxDateTime sttime(m_CompilerProcessList.at(procIndex).StartTime);
+            sttime.SetMillisecond(0);
+            if (false)
+                LogMessage(wxString::Format(_("Target File %s modification time %s task start time %s"),
+                                            fn.GetFullPath().wx_str(),
+                                            dmod.Format(_T("%H:%M:%S.%l")).wx_str(),
+                                            sttime.Format(_T("%H:%M:%S.%l")).wx_str()), cltNormal);
+            success = dmod >= sttime;
+        }
+    }
     if (success && !oFile.IsEmpty())
     {
+        wxTimeSpan tm(wxDateTime::UNow().Subtract(m_CompilerProcessList.at(procIndex).StartTime));
         wxLogNull silence; // In case opening the file fails
         wxFFile f(oFile.wx_str(), _T("r"));
         if (f.IsOpened())
@@ -3729,10 +3757,13 @@ void CompilerGCC::OnJobEnd(size_t procIndex, int exitCode)
                 units = _("MB");
             }
             wxString msg;
-            msg.Printf(_("Output file is %s with size %.2f %s"), oFile.wx_str(), displaySize, units.wx_str());
+            // tm.Format(_T("%02H:%02M:%02S.%03l"))
+            msg.Printf(_("Output file %s size is %.2f %s, link time %s"), oFile.wx_str(), displaySize, units.wx_str(), tm.Format(_T("%H:%M:%S.%l")).wx_str());
             LogMessage(msg, cltNormal);
         }
     }
+    if (success && !oFile.IsEmpty() && m_CompilerId == _T("sdcc"))
+        success = SDCCTargetPostprocess(oFile);
     if (success)
         m_LastExitCode = 0;
     if (m_CommandQueue.GetCount() != 0 && success)
@@ -3901,4 +3932,282 @@ wxString CompilerGCC::GetMinSecStr()
 #else
     return wxString::Format(_("%d minute(s), %d second(s)"), mins, secs);
 #endif // NO_TRANSLATION
+}
+
+class CompilerGCC::Segment8052
+{
+public:
+    typedef enum {
+        seg_invalid,
+        seg_code,
+        seg_data,
+        seg_xdata,
+        seg_xpaged,
+        seg_bit
+    } segment_t;
+
+    Segment8052(segment_t seg, unsigned long addr, unsigned long size, const wxString& name)
+        : m_name(name), m_addr(addr), m_size(size), m_seg(seg) {}
+    segment_t GetSegment(void) const { return m_seg; }
+    static const wxString& GetSegmentStr(segment_t seg);
+    const wxString& GetSegmentStr(void) const { return GetSegmentStr(GetSegment()); }
+    unsigned long GetAddr(void) const { return m_addr; }
+    unsigned long GetSize(void) const { return m_size; }
+    const wxString& GetName(void) const { return m_name; }
+    bool operator<(const Segment8052& x) const;
+
+protected:
+    wxString m_name;
+    unsigned long m_addr;
+    unsigned long m_size;
+    segment_t m_seg;
+};
+
+const wxString& CompilerGCC::Segment8052::GetSegmentStr(segment_t seg)
+{
+    switch (seg) {
+    case seg_invalid:
+    {
+        static const wxString r(wxT("INVALID"));
+        return r;
+    }
+
+    case seg_code:
+    {
+        static const wxString r(wxT("CODE"));
+        return r;
+    }
+
+    case seg_data:
+    {
+        static const wxString r(wxT("DATA"));
+        return r;
+    }
+
+    case seg_xdata:
+    {
+        static const wxString r(wxT("XDATA"));
+        return r;
+    }
+
+    case seg_xpaged:
+    {
+        static const wxString r(wxT("PAGED XDATA"));
+        return r;
+    }
+
+    case seg_bit:
+    {
+        static const wxString r(wxT("BIT"));
+        return r;
+    }
+
+    default:
+    {
+        static const wxString r(wxT("?"));
+        return r;
+    }
+    }
+}
+
+bool CompilerGCC::Segment8052::operator<(const Segment8052& x) const
+{
+    if (GetSegment() < x.GetSegment())
+        return true;
+    if (GetSegment() > x.GetSegment())
+        return false;
+    if (GetAddr() < x.GetAddr())
+        return true;
+    if (GetAddr() > x.GetAddr())
+        return false;
+    if (GetSize() < x.GetSize())
+        return true;
+    if (GetSize() > x.GetSize())
+        return false;
+    int c(GetName().Cmp(x.GetName()));
+    return c < 0;
+}
+
+bool CompilerGCC::SDCCTargetPostprocess(wxString outfilename)
+{
+	unsigned int nrerror, nrwarn;
+	return SDCCTargetPostprocess(outfilename, nrerror, nrwarn);
+}
+
+bool CompilerGCC::SDCCTargetPostprocess(wxString outfilename, unsigned int& nrerror, unsigned int& nrwarn)
+{
+    static const unsigned int flag_code = 1 << 0;
+    static const unsigned int flag_xdata = 1 << 1;
+    static const unsigned int flag_bit = 1 << 2;
+    static const unsigned int flag_abs = 1 << 8;
+    static const unsigned int flag_rel = 1 << 9;
+    static const unsigned int flag_con = 1 << 10;
+    static const unsigned int flag_ovr = 1 << 11;
+    static const unsigned int flag_pag = 1 << 12;
+ 
+    nrerror = nrwarn = 0;
+    wxFileName oFile(outfilename);
+    oFile.SetExt(_T("map"));
+    if (!oFile.IsFileReadable())
+    {
+        LogMessage(_("Cannot read map file ") + oFile.GetFullPath(), cltError);
+        return false;
+    }
+    wxRegEx sectionre(_T("^([[:alnum:]_]+) +([0-9A-Fa-f]+) +([0-9A-Fa-f]+) *= *[0-9]+ *\\. *bytes *\\(([[:alnum:]_,]+)\\) *$"));
+    if (!sectionre.IsValid())
+    {
+        LogMessage(_("Cannot parse regex"), cltError);
+        return false;
+    }
+    typedef std::map<wxString,unsigned int> flagmap_t;
+    flagmap_t flagmap;
+    flagmap[_T("CODE")] = flag_code;
+    flagmap[_T("XDATA")] = flag_xdata;
+    flagmap[_T("ABS")] = flag_abs;
+    flagmap[_T("REL")] = flag_rel;
+    flagmap[_T("CON")] = flag_con;
+    flagmap[_T("OVR")] = flag_ovr;
+    flagmap[_T("BIT")] = flag_bit;
+    flagmap[_T("PAG")] = flag_pag;
+    wxFileInputStream file(oFile.GetFullPath());
+    if (!file.Ok())
+    {
+        LogMessage(_("Cannot read map file ") + oFile.GetFullPath(), cltError);
+        return false;
+    }
+    typedef std::set<Segment8052> segments_t;
+    segments_t segments;
+    unsigned int err(0), warn(0);
+    wxTextInputStream input(file);
+    while (!file.Eof())
+    {
+        wxString line(input.ReadLine());
+        if (line.StartsWith(_T("?ASlink-Warning")))
+            ++warn;
+        if (line.StartsWith(_T("?ASlink-Error")))
+            ++err;
+        if (line.Left(4) != _T("Area"))
+            continue;
+        if (file.Eof())
+            break;
+        line = input.ReadLine();
+        if (line.Left(4) != _T("----"))
+            continue;
+        if (file.Eof())
+            break;
+        line = input.ReadLine();
+        if (!sectionre.Matches(line))
+            continue;
+        if (false && sectionre.GetMatchCount() < 5)
+            continue;
+        wxString seg(sectionre.GetMatch(line, 1));
+        wxString saddr(sectionre.GetMatch(line, 2));
+        wxString ssize(sectionre.GetMatch(line, 3));
+        wxString sattr(sectionre.GetMatch(line, 4));
+        unsigned long addr, size;
+        if (!saddr.ToULong(&addr, 16))
+            continue;
+        if (!ssize.ToULong(&size, 16))
+            continue;
+        if (!size)
+            continue;
+        wxStringTokenizer attrtok(sattr, wxT(","));
+        unsigned int flags(0);
+        while (attrtok.HasMoreTokens())
+        {
+            wxString token(attrtok.GetNextToken());
+            flagmap_t::const_iterator i(flagmap.find(token));
+            if (i != flagmap.end())
+            {
+                flags |= i->second;
+                continue;
+            }
+            LogMessage(_("Segment ") + seg + _(" unknown flag ") + token, cltInfo);
+        }
+        Segment8052::segment_t seg1(Segment8052::seg_data);
+        if (flags & flag_code)
+            seg1 = Segment8052::seg_code;
+        else if (!(~flags & (flag_xdata | flag_pag)))
+            seg1 = Segment8052::seg_xpaged;
+        else if (flags & flag_xdata)
+            seg1 = Segment8052::seg_xdata;
+        else if (flags & flag_bit)
+            seg1 = Segment8052::seg_bit;
+        segments.insert(Segment8052(seg1, addr, size, seg));
+        if (false)
+            LogMessage(_("Segment ") + seg + _(" ") + saddr + _(" ") + ssize + _(" ") + sattr, cltInfo);
+    }
+    nrerror = err;
+    nrwarn = warn;
+    if (err || warn)
+        return false;
+    Segment8052::segment_t lastseg(Segment8052::seg_invalid);
+    unsigned long dstack(0);
+    for (segments_t::const_iterator si(segments.begin()), se(segments.end()); si != se; ++si)
+    {
+        if (lastseg != si->GetSegment())
+        {
+            lastseg = si->GetSegment();
+            if (lastseg != Segment8052::seg_invalid)
+            {
+                LogMessage(_T(""), cltNormal);
+                LogMessage(wxString::Format(_T("%-30s Addr EndA Size"), (Segment8052::GetSegmentStr(lastseg) + _(" segments")).wx_str()), cltNormal);
+                LogMessage(_T("---------------------------------------------"), cltNormal);
+            }
+        }
+        if (lastseg == Segment8052::seg_invalid)
+            continue;
+        LogMessage(wxString::Format(_T("%-30s %04lX %04lX %04lX"), si->GetName().wx_str(), si->GetAddr(), si->GetAddr() + si->GetSize() - 1, si->GetSize()), cltNormal);
+        if (lastseg == Segment8052::seg_data && si->GetName() == _T("SSEG"))
+            dstack = si->GetSize();
+    }
+    // Address space summary
+    // Merge segments
+    for (segments_t::iterator si(segments.begin()), se(segments.end()); si != se; )
+    {
+        segments_t::iterator si2(si);
+        ++si2;
+        if (si2 == se)
+            break;
+        if (si->GetSegment() != si2->GetSegment() || si2->GetAddr() > si->GetAddr() + si->GetSize())
+        {
+            si = si2;
+            continue;
+        }
+        std::pair<segments_t::iterator,bool> ins(segments.insert(Segment8052(si->GetSegment(), si->GetAddr(),
+                                                                             std::max(si->GetAddr() + si->GetSize(), si2->GetAddr() + si2->GetSize()) - si->GetAddr(),
+                                                                             si->GetName() + _T("+") + si2->GetName())));
+        segments.erase(si);
+        segments.erase(si2);
+        si = ins.first;
+    }
+    typedef std::map<Segment8052::segment_t,unsigned long> sizemap_t;
+    sizemap_t sizemap;
+    for (segments_t::const_iterator si(segments.begin()), se(segments.end()); si != se; ++si)
+    {
+        if (si->GetSegment() == Segment8052::seg_invalid)
+            continue;
+        std::pair<sizemap_t::iterator,bool> ins(sizemap.insert(sizemap_t::value_type(si->GetSegment(), 0)));
+        ins.first->second += si->GetSize();
+    }
+    wxString summary;
+    for (sizemap_t::const_iterator si(sizemap.begin()), se(sizemap.end()); si != se; ++si)
+    {
+        wxString sz;
+        if (si->first == Segment8052::seg_bit)
+            sz.Printf(_T("%lu Bits"), si->second);
+        else if (si->first == Segment8052::seg_data && dstack > 0 && si->second >= dstack)
+            sz.Printf(_T("%lu Bytes (+%lu Bytes Stack)"), si->second - dstack, dstack);
+        else if (si->second >= 1024)
+            sz.Printf(_T("%.3f kBytes"), si->second * (1.0 / 1024));
+        else
+            sz.Printf(_T("%lu Bytes"), si->second);
+        summary += wxString::Format(_(", %s size %s"), Segment8052::GetSegmentStr(si->first).wx_str(), sz.wx_str());
+    }
+    LogMessage(_T(""), cltNormal);
+    LogMessage(summary.Mid(2), cltNormal);
+    LogMessage(_T(""), cltNormal);
+    if (false)
+        LogMessage(_("Done parsing the map file"), cltInfo);
+    return true;
 }

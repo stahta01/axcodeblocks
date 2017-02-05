@@ -249,11 +249,11 @@ void CfgMgrBldr::SwitchTo(const wxString& fileName)
     wxString info;
 #ifndef __GNUC__
     info.Printf(_T( " application info:\n"
-                    "\t svn_revision:\t%u\n"
+                    "\t git_revision:\t%07x\n"
                     "\t build_date:\t%s, %s "), ConfigManager::GetRevisionNumber(), wxT(__DATE__), wxT(__TIME__));
 #else
     info.Printf(_T( " application info:\n"
-                    "\t svn_revision:\t%u\n"
+                    "\t git_revision:\t%07x\n"
                     "\t build_date:\t%s, %s\n"
                     "\t gcc_version:\t%d.%d.%d "), ConfigManager::GetRevisionNumber(), wxT(__DATE__), wxT(__TIME__),
                 __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
@@ -549,12 +549,12 @@ inline wxString ConfigManager::GetUserDataFolder()
 #ifdef __WINDOWS__
     TCHAR buffer[MAX_PATH];
     if (!ConfigManager::has_alternate_user_data_path && ::GetEnvironmentVariable(_T("APPDATA"), buffer, MAX_PATH))
-        return wxString::Format(_T("%s\\CodeBlocks"), buffer);
+        return wxString::Format(_T("%s\\axCodeBlocks"), buffer);
     else
         return wxStandardPathsBase::Get().GetUserDataDir();
 #else
 #ifdef __linux__
-    return wxString::FromUTF8(g_build_filename (g_get_user_config_dir(), "codeblocks", NULL));
+    return wxString::FromUTF8(g_build_filename (g_get_user_config_dir(), "axcodeblocks", NULL));
 #else
     return wxStandardPathsBase::Get().GetUserDataDir();
 #endif // __linux__
@@ -1491,9 +1491,9 @@ void ConfigManager::InitPaths()
     if (data_path_global.IsEmpty())
     {
         if (platform::windows)
-            ConfigManager::data_path_global = app_path + _T("\\share\\codeblocks");
+            ConfigManager::data_path_global = app_path + _T("\\share\\axcodeblocks");
         else if (platform::macosx)
-            ConfigManager::data_path_global = res_path + _T("/share/codeblocks");
+            ConfigManager::data_path_global = res_path + _T("/share/axcodeblocks");
         else
             ConfigManager::data_path_global = wxStandardPathsBase::Get().GetDataDir();
     }
@@ -1504,19 +1504,21 @@ void ConfigManager::InitPaths()
     if (plugin_path_global.IsEmpty())
     {
         if (platform::windows || platform::macosx)
-            ConfigManager::plugin_path_global = data_path_global;
+            ConfigManager::plugin_path_global = data_path_global + _T("/plugins");
         else
         {
+#if !defined(__WXMSW__) && !defined(__WXMAC__)
             // It seems we can not longer rely on wxStandardPathsBase::Get().GetPluginsDir(),
             // because its behaviour has changed on some systems (at least Fedora 14 64-bit).
             // So we create the pathname manually
-            ConfigManager::plugin_path_global = ((const wxStandardPaths&)wxStandardPaths::Get()).GetInstallPrefix() + _T("/lib/codeblocks/plugins");
+            ConfigManager::plugin_path_global = ((const wxStandardPaths&)wxStandardPaths::Get()).GetInstallPrefix() + _T("/lib/axcodeblocks/plugins");
             // first assume, we use standard-paths
             if (!wxDirExists(ConfigManager::plugin_path_global) && wxIsPlatform64Bit())
             {
                 // if standard-path does not exist and we are on 64-bit system, use lib64 instead
-                ConfigManager::plugin_path_global = ((const wxStandardPaths&)wxStandardPaths::Get()).GetInstallPrefix() + _T("/lib64/codeblocks/plugins");
+                ConfigManager::plugin_path_global = ((const wxStandardPaths&)wxStandardPaths::Get()).GetInstallPrefix() + _T("/lib64/axcodeblocks/plugins");
             }
+#endif
         }
     }
 #endif
@@ -1527,7 +1529,7 @@ void ConfigManager::InitPaths()
       dataPathUser = wxString::FromUTF8(g_build_filename (g_get_user_data_dir(), NULL));
 #endif // __linux__
 
-    ConfigManager::data_path_user = dataPathUser + wxFILE_SEP_PATH + _T("codeblocks");
+    ConfigManager::data_path_user = dataPathUser + wxFILE_SEP_PATH + _T("axcodeblocks");
 
     // if user- and global-datapath are the same (can happen in portable mode) we run in conflicts
     // so we extend the user-datapath with the users name
@@ -1544,20 +1546,20 @@ void ConfigManager::InitPaths()
 void ConfigManager::MigrateFolders()
 {
 #ifdef __linux__
-    // if the old config-folder (~/.codeblocks) does not exist, we have nothing to do.
+    // if the old config-folder (~/.axcodeblocks) does not exist, we have nothing to do.
     if (!wxDirExists(wxStandardPaths::Get().GetUserDataDir()))
         return;
 
     // ConfigManager::config_folder might be the portable-path but we want to migrate the standard-conform folder,
-    // but only if it not aöready exists
-    wxString newConfigFolder = wxString::FromUTF8(g_build_filename (g_get_user_config_dir(), "codeblocks", NULL));
+    // but only if it not already exists
+    wxString newConfigFolder = wxString::FromUTF8(g_build_filename (g_get_user_config_dir(), "axcodeblocks", NULL));
     // if the new config folder already exist, we step out immediately
     if (wxDirExists(newConfigFolder))
         return;
 
     wxString oldConfigFolder = wxStandardPaths::Get().GetUserDataDir();
-    wxString oldDataFolder = oldConfigFolder + wxFILE_SEP_PATH + _T("share") + wxFILE_SEP_PATH + _T("codeblocks");
-    wxString newDataFolder = wxString::FromUTF8(g_build_filename (g_get_user_data_dir(), NULL)) + wxFILE_SEP_PATH + _T("codeblocks");
+    wxString oldDataFolder = oldConfigFolder + wxFILE_SEP_PATH + _T("share") + wxFILE_SEP_PATH + _T("axcodeblocks");
+    wxString newDataFolder = wxString::FromUTF8(g_build_filename (g_get_user_data_dir(), NULL)) + wxFILE_SEP_PATH + _T("axcodeblocks");
     wxString msg;
     msg = F(_("The places where the configuration files and user-data files are stored\n"
               "have been changed to be more standard-conform.\n"

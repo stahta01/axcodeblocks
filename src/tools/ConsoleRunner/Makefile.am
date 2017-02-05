@@ -1,5 +1,11 @@
-bin_PROGRAMS = cb_console_runner
-cb_console_runner_SOURCES = main.cpp
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CPPFLAGS = $(WX_CPPFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS)
 
-man_MANS = cb_console_runner.1
+
+bin_PROGRAMS = axcb_console_runner
+axcb_console_runner_SOURCES = main.cpp
+
+man_MANS = axcb_console_runner.1
 EXTRA_DIST = $(man_MANS)

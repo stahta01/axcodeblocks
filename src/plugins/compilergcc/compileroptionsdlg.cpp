@@ -1368,7 +1368,7 @@ void CompilerOptionsDlg::DoSaveCompilerDefinition()
     }
 
     const RegExArray& regexes = compiler->GetRegExArray();
-    for (size_t i = 0; i < regexes.GetCount(); ++i)
+    for (size_t i = 0; i < regexes.size(); ++i)
     {
         node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("RegEx")));
         node = node->GetNext();
@@ -1390,7 +1390,7 @@ void CompilerOptionsDlg::DoSaveCompilerDefinition()
             node->AddAttribute(wxT("file"), wxString::Format(wxT("%d"), regexes[i].filename));
         if (regexes[i].line != 0)
             node->AddAttribute(wxT("line"), wxString::Format(wxT("%d"), regexes[i].line));
-        tp = regexes[i].regex;
+        tp = regexes[i].GetRegExString();
         tp.Replace(wxT("\t"), wxT("\\t"));
         node->AddChild(new wxXmlNode(wxXML_CDATA_SECTION_NODE, wxEmptyString, tp));
     }
@@ -2174,7 +2174,7 @@ void CompilerOptionsDlg::OnRemoveCompilerClick(cb_unused wxCommandEvent& event)
 {
     if (cbMessageBox(_("Are you sure you want to remove this compiler?"),
                     _("Confirmation"),
-                    wxOK | wxCANCEL | wxICON_QUESTION | wxNO_DEFAULT) == wxID_OK)
+                    wxYES | wxNO| wxICON_QUESTION | wxNO_DEFAULT) == wxID_YES)
     {
         wxChoice* cmb = XRCCTRL(*this, "cmbCompiler", wxChoice);
         int compilerIdx = m_CurrentCompilerIdx;

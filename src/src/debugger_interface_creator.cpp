@@ -17,6 +17,8 @@
 #include "breakpointsdlg.h"
 #include "cbstyledtextctrl.h"
 #include "cpuregistersdlg.h"
+#include "axs_pinemdlg.h"
+#include "axs_dbglink.h"
 #include "disassemblydlg.h"
 #include "examinememorydlg.h"
 #include "threadsdlg.h"
@@ -90,6 +92,7 @@ void DebugInterfaceFactory::DeleteBreakpoints(cbBreakpointsDlg *dialog)
 
 cbCPURegistersDlg* DebugInterfaceFactory::CreateCPURegisters()
 {
+
     CPURegistersDlg *dialog = new CPURegistersDlg(Manager::Get()->GetAppWindow());
 
     CodeBlocksDockEvent evt(cbEVT_ADD_DOCK_WINDOW);
@@ -152,6 +155,54 @@ void DebugInterfaceFactory::DeleteMemory(cbExamineMemoryDlg *dialog)
     if (dialog)
         RemoveDockWindow(dialog->GetWindow());
 }
+
+///AXSEM
+axs_cbPinEmDlg* DebugInterfaceFactory::CreateAXSPinEm()
+{
+    AXS_PinEmDlg *dialog = new AXS_PinEmDlg();
+    CodeBlocksDockEvent evt(cbEVT_ADD_DOCK_WINDOW);
+    evt.name = _T("PinEmPane");
+    evt.title = _("Pin Emulation");
+    evt.pWindow = dialog;
+    evt.dockSide = CodeBlocksDockEvent::dsFloating;
+    evt.desiredSize.Set(450, 250);
+    evt.floatingSize.Set(450, 250);
+    evt.minimumSize.Set(350, 150);
+    Manager::Get()->ProcessEvent(evt);
+    return dialog;
+}
+
+///AXSEM
+void DebugInterfaceFactory::DeleteAXSPinEm(axs_cbPinEmDlg *dialog)
+{
+    if (dialog)
+        RemoveDockWindow(dialog->GetWindow());
+}
+
+///AXSEM
+axs_cbDbgLink* DebugInterfaceFactory::CreateAXSDbgLink()
+{
+    AXS_DbgLnkDlg *dialog = new AXS_DbgLnkDlg();
+    CodeBlocksDockEvent evt(cbEVT_ADD_DOCK_WINDOW);
+    evt.name = _T("DbgLnkPane");
+    evt.title = _("Debugger link");
+    evt.pWindow = dialog;
+    evt.dockSide = CodeBlocksDockEvent::dsFloating;
+    evt.desiredSize.Set(450, 250);
+    evt.floatingSize.Set(450, 250);
+    evt.minimumSize.Set(350, 150);
+    Manager::Get()->ProcessEvent(evt);
+    return dialog;
+}
+
+///AXSEM
+void DebugInterfaceFactory::DeleteAXSDbgLink(axs_cbDbgLink *dialog)
+{
+    if (dialog)
+        RemoveDockWindow(dialog->GetWindow());
+}
+
+
 
 cbThreadsDlg* DebugInterfaceFactory::CreateThreads()
 {

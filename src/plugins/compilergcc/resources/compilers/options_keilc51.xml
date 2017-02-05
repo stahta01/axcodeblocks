@@ -5,7 +5,7 @@
     <Program name="C"         value="C51.exe"/>
     <Program name="CPP"       value="C51.exe"/>
     <Program name="LD"        value="BL51.exe"/>
-    <Program name="DBGconfig" value=""/>
+    <Program name="DBGconfig" value="axs_debugger:Default"/>
     <Program name="LIB"       value="LIB51.exe"/>
     <Program name="WINDRES"   value=""/>
     <Program name="MAKE"      value="make.exe"/>

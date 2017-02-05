@@ -435,6 +435,14 @@ extern EVTIMPORT const wxEventType cbEVT_DEBUGGER_PAUSED;
 extern EVTIMPORT const wxEventType cbEVT_DEBUGGER_FINISHED;
 #define EVT_DEBUGGER_FINISHED(fn) DECLARE_EVENT_TABLE_ENTRY( cbEVT_DEBUGGER_FINISHED, -1, -1, (wxObjectEventFunction)(wxEventFunction)(CodeBlocksEventFunction)&fn, (wxObject *) NULL ),
 
+// codecompletion <-> debuggeraxs communication
+extern EVTIMPORT const wxEventType cbEVT_FROM_CC_TO_DEBUG;
+#define EVT_FROM_CC_TO_DEBUG(fn) DECLARE_EVENT_TABLE_ENTRY( cbEVT_FROM_CC_TO_DEBUG, -1, -1, (wxObjectEventFunction)(wxEventFunction)(CodeBlocksEventFunction)&fn, (wxObject *) NULL ),
+extern EVTIMPORT const wxEventType cbEVT_REQ_WATCH;
+#define cbEVT_REQ_WATCH(fn) DECLARE_EVENT_TABLE_ENTRY( cbcbEVT_REQ_WATCH, -1, -1, (wxObjectEventFunction)(wxEventFunction)(CodeBlocksEventFunction)&fn, (wxObject *) NULL ),
+
+
+
 // logger-related events
 
 // add a log window

@@ -16,11 +16,15 @@
 #include "manager.h"
 #include "configmanager.h"
 
+#   include "configmanager.h"
+
 class wxMenu;
 class wxToolBar;
 class cbBacktraceDlg;
 class cbBreakpointsDlg;
 class cbCPURegistersDlg;
+class axs_cbPinEmDlg;               //AXSEM
+class axs_cbDbgLink;                //AXSEM
 class cbDebuggerPlugin;
 class cbDebugInterfaceFactory;
 class cbDisassemblyDlg;
@@ -60,6 +64,10 @@ class DLLIMPORT cbWatch
         virtual void GetFullWatchString(wxString &full_watch) const = 0;
         virtual void GetType(wxString &type) const = 0;
         virtual void SetType(const wxString &type) = 0;
+        virtual void GetAddrSpace(wxString &as) const;
+        virtual void GetAddr(wxString &addr) const;
+        virtual bool IsDisabled() const;
+        virtual bool IsReadonly() const;
 
         virtual wxString const & GetDebugString() const = 0;
     protected:
@@ -145,6 +153,71 @@ class DLLIMPORT cbThread
         int m_number;
         wxString m_info;
 };
+
+class DLLIMPORT cbRegister
+{
+        cbRegister& operator =(cbRegister &);
+        cbRegister(cbRegister &);
+
+    public:
+        typedef cb::shared_ptr<cbRegister> Pointer;
+        typedef cb::shared_ptr<const cbRegister> ConstPointer;
+    private:
+        typedef std::vector<Pointer> PtrContainer;
+    public:
+        cbRegister();
+    public:
+        virtual void GetName(wxString &name) const = 0;
+        virtual void GetDescription(wxString &desc) const;
+        virtual void GetValue(wxString &value) const = 0;
+        virtual void GetValueAlt(wxString &value) const;
+        virtual void GetWriteMask(wxString &mask) const;
+        virtual void GetAddrSpace(wxString &as) const;
+        virtual void GetAddr(wxString &addr) const;
+        virtual bool IsCategory() const;
+        virtual bool IsOutdated() const;
+        virtual bool IsReadonly() const;
+        virtual bool IsReadSafe() const;
+
+        virtual wxString const & GetDebugString() const = 0;
+    protected:
+        virtual ~cbRegister();
+    public:
+        static void AddChild(cbRegister::Pointer parent, cbRegister::Pointer reg);
+        static void InsertChild(cbRegister::Pointer parent, cbRegister::Pointer reg, int index);
+        void RemoveChild(int index);
+        void RemoveChildren();
+        bool RemoveMarkedChildren(bool recursive = false);
+        int GetChildCount() const;
+        Pointer GetChild(int index);
+        ConstPointer GetChild(int index) const;
+
+        Pointer FindChild(const wxString& name);
+        int FindChildIndex(const wxString& symbol) const;
+
+        ConstPointer GetParent() const;
+        Pointer GetParent();
+
+        bool IsRemoved() const;
+        bool IsChanged() const;
+
+        void MarkAsRemoved(bool flag);
+        void MarkChildrenAsRemoved(bool recursive = false);
+        void MarkAsChanged(bool flag);
+        void MarkAsChangedRecursive(bool flag);
+
+        bool IsExpanded() const;
+        void Expand(bool expand);
+
+    private:
+        cb::weak_ptr<cbRegister> m_parent;
+        PtrContainer    m_children;
+        bool            m_changed;
+        bool            m_removed;
+        bool            m_expanded;
+};
+
+cbRegister::Pointer DLLIMPORT cbGetRootRegister(cbRegister::Pointer watch);
 
 /**
   *
@@ -321,6 +394,10 @@ class DLLIMPORT DebuggerManager : public Mgr<DebuggerManager>
           */
         cbWatchesDlg* GetWatchesDialog();
 
+        /// AXSEM
+        axs_cbPinEmDlg* GetAXSPinEmDialog();
+        axs_cbDbgLink* GetAXSDbgLinkDialog();
+
         bool ShowBacktraceDialog();
 
     public: // tests if something should be done
@@ -370,6 +447,10 @@ class DLLIMPORT DebuggerManager : public Mgr<DebuggerManager>
         cbExamineMemoryDlg* m_examineMemoryDialog;
         cbThreadsDlg* m_threadsDialog;
         cbWatchesDlg* m_watchesDialog;
+
+        ///AXSEM
+        axs_cbPinEmDlg* m_axs_PinEmDialog;
+        axs_cbDbgLink* m_axs_DbgLnkDialog;
 
         TextCtrlLogger* m_logger;
         int m_loggerIndex;

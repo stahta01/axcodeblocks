@@ -26,6 +26,10 @@
     #include "resources/icons/app.xpm"
 #endif
 
+#ifdef __MINGW32__
+    #include <excpt.h>
+#endif
+
 #include <wx/taskbar.h>
 #include <wx/splash.h>
 #include <wx/snglinst.h>
@@ -171,6 +175,11 @@ class CodeBlocksApp : public wxApp
         bool m_Assocs; // associations check enabled
 #endif
         int m_BatchExitCode;
+
+#if 0 && defined(__MINGW32__)
+        EXCEPTION_REGISTRATION m_ExcReg;
+	static EXCEPTION_DISPOSITION ExceptionRouter(PEXCEPTION_RECORD pRecord, PEXCEPTION_REGISTRATION pReg, PCONTEXT pContext, PEXCEPTION_RECORD pRecord2);
+#endif
 
         DECLARE_EVENT_TABLE()
 };

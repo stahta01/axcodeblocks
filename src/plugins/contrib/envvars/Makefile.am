@@ -1,9 +1,13 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/include/scripting/include \
 		-I$(top_srcdir)/src/include/scripting/sqplus \
 		-I$(top_srcdir)/src/include/scripting/bindings \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include
+
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
 
 pluginlibdir = $(pkglibdir)/plugins
 pkgdata_DATA = envvars.zip
@@ -12,7 +16,7 @@ pluginlib_LTLIBRARIES = libenvvars.la
 
 libenvvars_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libenvvars_la_LIBADD = ../../../sdk/libcodeblocks.la $(WX_LIBS)
+libenvvars_la_LIBADD = ../../../sdk/libaxcodeblocks.la $(WX_LIBS)
 
 libenvvars_la_SOURCES = envvars.cpp \
                         envvars_cfgdlg.cpp \

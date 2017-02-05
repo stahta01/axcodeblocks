@@ -1,6 +1,6 @@
 SUBDIRS = properties wxwidgets . plugin
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN -DWXMAKINGDLL_PROPGRID -DwxPG_USE_WXMODULE=0 \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include \
 		$(WXPROPGRID_INCLUDE) \
@@ -15,11 +15,15 @@ AM_CPPFLAGS = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/base \
 		-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/glue
 
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
+
 lib_LTLIBRARIES = libwxsmithlib.la
 
-libwxsmithlib_la_LDFLAGS = -version-info 0:1:0 -shared
+libwxsmithlib_la_LDFLAGS = -no-undefined -version-info 0:1:0 -shared @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
 
-libwxsmithlib_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libwxsmithlib_la_LIBADD = ../../../sdk/libaxcodeblocks.la \
 				properties/libwxsmith_properties.la \
 				wxwidgets/libwxsmith_wxwidgets.la \
 				$(WX_LIBS)

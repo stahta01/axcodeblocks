@@ -78,8 +78,9 @@ public:
         else if(BlkAllc::enable_global_debug && (BlkAllc::verbose || ref_count != 0))
             BlkAllc::DebugLog(cbC2U(typeid(T).name()), allocBlocks.size(), pool_size, max_refs, total_refs, ref_count);
 
-        for(unsigned int i = 0; i < allocBlocks.size(); ++i)
-            delete[] allocBlocks[i];
+        // FIXME: deallocation causes a mysterious crash when terminating with project(s) loaded
+        //for(unsigned int i = 0; i < allocBlocks.size(); ++i)
+           // delete[] allocBlocks[i];
     };
 
     inline void* New()

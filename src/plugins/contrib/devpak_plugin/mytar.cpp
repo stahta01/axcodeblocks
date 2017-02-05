@@ -8,7 +8,11 @@
  */
 
 #include "mytar.h"
+#if defined _WIN32
 #include <io.h>
+#else
+#include <stdio.h>
+#endif
 #include <globals.h>
 #include <wx/intl.h>
 #include <wx/arrimpl.cpp>

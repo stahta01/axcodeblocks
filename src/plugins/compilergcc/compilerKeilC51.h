@@ -26,6 +26,7 @@ class CompilerKeilCX51 : public CompilerKeilC51
     public:
         CompilerKeilCX51();
         virtual ~CompilerKeilCX51();
+        virtual AutoDetectResult AutoDetectInstallationDir();
     protected:
         virtual Compiler* CreateCopy();
     private:

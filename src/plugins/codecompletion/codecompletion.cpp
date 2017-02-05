@@ -599,6 +599,10 @@ void CodeCompletion::OnAttach()
     pm->RegisterEventSink(cbEVT_EDITOR_ACTIVATED,     new cbEventFunctor<CodeCompletion, CodeBlocksEvent>(this, &CodeCompletion::OnEditorActivated));
     pm->RegisterEventSink(cbEVT_EDITOR_CLOSE,         new cbEventFunctor<CodeCompletion, CodeBlocksEvent>(this, &CodeCompletion::OnEditorClosed));
 
+    /// ADDED by E. Pargaetzi: SEE BELOW FOR MORE DETAILS
+    pm->RegisterEventSink(cbEVT_REQ_WATCH,            new cbEventFunctor<CodeCompletion, CodeBlocksEvent>(this, &CodeCompletion::OnWatchReq));
+    /// END OF MODIFICATION
+
     m_DocHelper.OnAttach();
 }
 
@@ -1741,6 +1745,67 @@ void CodeCompletion::UpdateToolBar()
     m_ToolBar->Realize();
     m_ToolBar->SetInitialSize();
 }
+
+
+
+/// ADDED BY E. Pargaetzi
+
+/// DELIVERS INFORMATIONS ON SCOPE AND TYPE OF THE
+/// VARIABLE AT CARET TO THE WATCHES DIALOG OF THE
+/// AXSEM DEBUGGER
+
+#include <iostream>
+#include <iomanip>
+
+void CodeCompletion::OnWatchReq(CodeBlocksEvent& event)
+{
+    CodeBlocksEvent evt(cbEVT_FROM_CC_TO_DEBUG);
+    evt.SetString(event.GetString());
+    if (true)
+        std::cerr << "Watch Scope: in \"" << (const char *)event.GetString().char_str() << "\"" << std::endl;
+    if (IsAttached() && m_InitDone)
+    {
+        TokenIdxSet result;
+        if (m_NativeParser.MarkItemsByAI(result, true, false, true, event.GetInt()))
+        {
+            for (TokenIdxSet::iterator it = result.begin(); it != result.end(); ++it)
+            {
+                Token* token = m_NativeParser.GetParser().GetTokenTree()->at(*it);
+                if (token)
+                {
+                    if (true)
+                        std::cerr << "Watch Scope Token: Kind 0x" << std::hex << token->m_TokenKind << std::dec << " name "
+                                  << (const char *)token->DisplayName().char_str()
+                                  << " namespace " << (const char *)token->GetNamespace().char_str()
+                                  << " tokenkind " << (const char *)token->GetTokenKindString().char_str()
+                                  << " tokenscope " << (const char *)token->GetTokenScopeString().char_str()
+                                  << " filename " << (const char *)token->GetFilename().char_str()
+                                  << " implfilename " << (const char *)token->GetImplFilename().char_str()
+                                  << " formattedargs " << (const char *)token->GetFormattedArgs().char_str()
+                                  << " strippedargs " << (const char *)token->GetStrippedArgs().char_str() << std::endl;
+                    if (!(token->m_TokenKind & tkVariable))
+                        continue;
+                    wxString qname(token->GetNamespace());
+                    if (qname.IsEmpty())
+                        continue;
+                    qname += event.GetString();
+                    if (!token->GetFilename().IsEmpty())
+                    {
+                        wxFileName fn(token->GetFilename());
+                        qname = fn.GetName() + wxT("::") + qname;
+                    }
+                    evt.SetString(wxT("L") + qname);
+                }
+            }
+        }
+    }
+    if (true)
+        std::cerr << "Watch Scope: in \"" << (const char *)event.GetString().char_str()
+                  << "\" out \"" << (const char *)evt.GetString().char_str() << "\"" << std::endl;
+    Manager::Get()->GetPluginManager()->NotifyPlugins(evt);
+}
+/// END OF MODIFICATION
+
 
 void CodeCompletion::OnUpdateUI(wxUpdateUIEvent& event)
 {

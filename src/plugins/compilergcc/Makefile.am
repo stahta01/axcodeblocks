@@ -1,6 +1,6 @@
 SUBDIRS = depslib resources
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxpropgrid/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include \
@@ -8,7 +8,9 @@ AM_CPPFLAGS = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include/scripting/sqplus \
 		-I$(top_srcdir)/src/plugins/compilergcc/depslib/src
 
-AM_CXXFLAGS = -DDEPSLIB_UNIX
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS) -DDEPSLIB_UNIX
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
 
 pluginlibdir = $(pkglibdir)/plugins
 
@@ -16,7 +18,7 @@ pluginlib_LTLIBRARIES = libcompiler.la
 
 libcompiler_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libcompiler_la_LIBADD = ../../sdk/libcodeblocks.la \
+libcompiler_la_LIBADD = ../../sdk/libaxcodeblocks.la \
 				depslib/src/libdepslib.la \
 				$(WX_LIBS)
 
@@ -40,6 +42,7 @@ libcompiler_la_SOURCES = advancedcompileroptionsdlg.cpp \
 			compileroptionsdlg.cpp \
 			compilerOW.cpp \
 			compilerOWgenerator.cpp \
+			compilerSDCC.cpp \
 			compilerG95.cpp \
 			compilerGNUARM.cpp \
 			compilerGNUFortran.cpp \
@@ -67,6 +70,7 @@ noinst_HEADERS = advancedcompileroptionsdlg.h \
 			compileroptionsdlg.h \
 			compilerOW.h \
 			compilerOWgenerator.h \
+			compilerSDCC.h \
 			compilerGNUARM.h \
 			compilerGNUFortran.h \
 			compilerXML.h \

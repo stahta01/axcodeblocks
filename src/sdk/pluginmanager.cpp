@@ -730,7 +730,11 @@ bool PluginManager::ReadManifestFile(const wxString& pluginFilename,
         wxString actual = fname.GetFullName();
 
         // remove 'lib' prefix from plugin name (if any)
-        if (!platform::windows && actual.StartsWith(_T("lib")))
+	bool remove_lib(actual.StartsWith(_T("lib")));
+#ifndef CB_AUTOCONF
+	remove_lib = remove_lib && !platform::windows;
+#endif
+        if (remove_lib)
             actual.Remove(0, 3);
 
         actual = ConfigManager::LocateDataFile(actual, sdPluginsUser | sdDataUser | sdPluginsGlobal | sdDataGlobal);
@@ -949,7 +953,11 @@ int PluginManager::ScanForPlugins(const wxString& path)
         {
             // defaults
             if      (platform::windows)
+#ifdef CB_AUTOCONF
+                bbplugins.Add(_T("libcompiler.dll"));
+#else
                 bbplugins.Add(_T("compiler.dll"));
+#endif
             else if (platform::darwin || platform::macosx)
                 bbplugins.Add(_T("libcompiler.dylib"));
             else

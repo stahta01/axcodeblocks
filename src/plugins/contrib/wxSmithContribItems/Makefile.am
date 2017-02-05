@@ -28,6 +28,9 @@ AM_CPPFLAGS = $(WX_CXXFLAGS) \
 		-I$(srcdir)/../wxContribItems/wxled/ledpanel/include \
 		-I$(srcdir)/../wxContribItems/wxmathplot
 
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
 
 pluginlibdir = $(pkglibdir)/plugins
 
@@ -35,7 +38,7 @@ pluginlib_LTLIBRARIES = libwxsmithcontribitems.la
 
 libwxsmithcontribitems_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libwxsmithcontribitems_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libwxsmithcontribitems_la_LIBADD = ../../../sdk/libaxcodeblocks.la \
 		       ../wxSmith/libwxsmithlib.la \
 			../wxContribItems/wxchart/libwxchartctrl.la \
 			../wxContribItems/wxFlatNotebook/libwxflatnotebook.la \

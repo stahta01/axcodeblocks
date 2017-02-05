@@ -1,7 +1,7 @@
 SUBDIRS = scripting wxscintilla $(WXPROPGRID_DIR) resources
 DIST_SUBDIRS = scripting wxscintilla  wxpropgrid resources
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DEXPORT_LIB -DEXPORT_EVENTS -DWXMAKINGDLL_SCI \
 			$(CB_GLIB2_CFLAGS) \
 			-I$(top_srcdir)/src/include \
 			-I$(top_srcdir)/src/sdk/wxscintilla/include \
@@ -9,7 +9,7 @@ AM_CPPFLAGS = $(WX_CXXFLAGS) \
 			-I$(top_srcdir)/src/include/tinyxml \
 			-I$(top_srcdir)/src/include/scripting/include \
 			-I$(top_srcdir)/src/include/scripting/bindings \
- 			-I$(top_srcdir)/src/include/scripting/sqplus \
+			-I$(top_srcdir)/src/include/scripting/sqplus \
  			-I$(top_srcdir)/src/include/mozilla_chardet \
  			-I$(top_srcdir)/src/include/mozilla_chardet/mfbt \
  			-I$(top_srcdir)/src/include/mozilla_chardet/nsprpub/pr/include \
@@ -17,11 +17,16 @@ AM_CPPFLAGS = $(WX_CXXFLAGS) \
  			-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/base \
  			-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/glue
 
-lib_LTLIBRARIES = libcodeblocks.la
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS)
 
-libcodeblocks_la_LDFLAGS = -version-info @CODEBLOCKS_VERSION_INFO@
 
-libcodeblocks_la_LIBADD = scripting/bindings/libsqbindings.la \
+lib_LTLIBRARIES = libaxcodeblocks.la
+
+libaxcodeblocks_la_LDFLAGS = -no-undefined -version-info @CODEBLOCKS_VERSION_INFO@ @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@ $(WX_LIBS) @WIN32_SHFOLDER@ @WIN32_GDI@
+
+libaxcodeblocks_la_LIBADD = scripting/bindings/libsqbindings.la \
 			scripting/sqplus/libsqplus.la \
 			scripting/sqstdlib/libsqstdlib.la \
 			scripting/squirrel/libsquirrel.la \
@@ -31,7 +36,7 @@ libcodeblocks_la_LIBADD = scripting/bindings/libsqbindings.la \
 			$(CB_GLIB2_LIBS) \
 			$(WXPROPGRID_LIB)
 
-libcodeblocks_la_SOURCES = annoyingdialog.cpp \
+libaxcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						autodetectcompilers.cpp \
 						base64.cpp \
 						blockallocated.cpp \

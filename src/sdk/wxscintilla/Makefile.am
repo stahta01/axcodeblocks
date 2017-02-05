@@ -1,4 +1,12 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+if WIN32
+platform_cppflags =
+lib_LTLIBRARIES = libwxscintilla.la
+else
+platform_cppflags = -DGTK
+noinst_LTLIBRARIES = libwxscintilla.la
+endif
+
+AM_CPPFLAGS = $(WX_CPPFLAGS) -D__WX__ -DSCI_LEXER -DLINK_LEXERS -DWXMAKINGDLL_SCI $(platform_cppflags) \
 			-I$(srcdir)/include \
 			-I$(srcdir)/src/scintilla/include \
 			-I$(srcdir)/src/scintilla/lexlib \
@@ -8,8 +16,12 @@ AM_CPPFLAGS = $(WX_CXXFLAGS) \
 			-DGTK \
 			-D__WX__
 
-noinst_LTLIBRARIES = libwxscintilla.la
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
 
+libwxscintilla_la_LDFLAGS = -no-undefined @WIN32_DLLLDFLAGS@
+libwxscintilla_la_LIBADD = $(WX_LIBS) @WIN32_GDI@
 libwxscintilla_la_SOURCES = src/PlatWX.cpp \
 			src/ScintillaWX.cpp \
 			src/wxscintilla.cpp \
@@ -204,7 +216,7 @@ noinst_HEADERS = src/PlatWX.h \
 			src/scintilla/src/ViewStyle.h \
 			src/scintilla/src/XPM.h
 
-sdkdir=$(includedir)/codeblocks/wxscintilla/include/wx
+sdkdir=$(includedir)/axcodeblocks/wxscintilla/include/wx
 
 sdk_HEADERS = include/wx/wxscintilla.h
 

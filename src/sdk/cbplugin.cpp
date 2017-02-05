@@ -293,6 +293,29 @@ int cbDebuggerPlugin::GetIndexOfActiveConfig() const
     return m_ActiveConfig;
 }
 
+int cbDebuggerPlugin::GetEnabledTools()
+{
+    bool stopped(IsStopped()), isRunning(IsRunning());
+    int r(0);
+    if (isRunning)
+        r |= DebuggerToolbarTools::Stop | DebuggerToolbarTools::Continue;
+    if (stopped)
+        r |= DebuggerToolbarTools::Step | DebuggerToolbarTools::RunToCursor;
+    if (isRunning && stopped)
+        r |= DebuggerToolbarTools::Next | DebuggerToolbarTools::NextInstr |
+             DebuggerToolbarTools::StepIntoInstr | DebuggerToolbarTools::StepOut | DebuggerToolbarTools::DebuggerIdle;
+    if (isRunning && !stopped)
+        r |= DebuggerToolbarTools::Break;
+    if (!isRunning || stopped)
+        r |= DebuggerToolbarTools::Debug;
+    return r;
+}
+
+bool cbDebuggerPlugin::IsHalted()
+{
+    return !!(GetEnabledTools() & DebuggerToolbarTools::DebuggerIdle);
+}
+
 void cbDebuggerPlugin::ClearActiveMarkFromAllEditors()
 {
     EditorManager* edMan = Manager::Get()->GetEditorManager();
@@ -304,7 +327,7 @@ void cbDebuggerPlugin::ClearActiveMarkFromAllEditors()
     }
 }
 
-cbDebuggerPlugin::SyncEditorResult cbDebuggerPlugin::SyncEditor(const wxString& filename, int line, bool setMarker)
+cbDebuggerPlugin::SyncEditorResult cbDebuggerPlugin::SyncEditor(const wxString& filename, int line, bool setMarker, int line_end)
 {
     if (setMarker)
     {
@@ -350,7 +373,11 @@ cbDebuggerPlugin::SyncEditorResult cbDebuggerPlugin::SyncEditor(const wxString& 
             ed->SetProjectFile(f);
         ed->GotoLine(line - 1, false);
         if (setMarker)
+        {
             ed->SetDebugLine(line - 1);
+            for (++line; line <= line_end; ++line)
+                ed->SetDebugLine(line - 1);
+        }
         return SyncOk;
     }
     else

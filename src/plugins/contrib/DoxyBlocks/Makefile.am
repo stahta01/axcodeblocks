@@ -1,8 +1,12 @@
 SUBDIRS = images
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include
+
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
 
 pluginlibdir = $(pkglibdir)/plugins
 
@@ -10,7 +14,7 @@ pluginlib_LTLIBRARIES = libDoxyBlocks.la
 
 libDoxyBlocks_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libDoxyBlocks_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libDoxyBlocks_la_LIBADD = ../../../sdk/libaxcodeblocks.la \
 			$(WX_LIBS)
 
 libDoxyBlocks_la_SOURCES = AutoDoc.cpp \

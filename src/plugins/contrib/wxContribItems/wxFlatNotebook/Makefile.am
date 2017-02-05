@@ -1,11 +1,15 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN -DWXMAKINGDLL_FNB \
 		-I$(srcdir)/include
 
-wxcontribitemsdir=$(libdir)/codeblocks/wxContribItems
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
+
+wxcontribitemsdir=$(libdir)/axcodeblocks/wxContribItems
 
 wxcontribitems_LTLIBRARIES = libwxflatnotebook.la
 
-libwxflatnotebook_la_LDFLAGS = -version-info 0:1:0
+libwxflatnotebook_la_LDFLAGS = -version-info 0:1:0 -shared -no-undefined
 
 libwxflatnotebook_la_LIBADD = $(WX_LIBS)
 
@@ -17,7 +21,7 @@ libwxflatnotebook_la_SOURCES = \
 ./src/wxFlatNotebook/wxFlatNotebook.cpp \
 ./src/wxFlatNotebook/xh_fnb.cpp
 
-sdkdir=$(includedir)/codeblocks/wxContribItems/wxFlatNotebook/include/wx/wxFlatNotebook
+sdkdir=$(includedir)/axcodeblocks/wxContribItems/wxFlatNotebook/include/wx/wxFlatNotebook
 
 sdk_HEADERS = \
 ./include/wx/wxFlatNotebook/wxFlatNotebook.h \

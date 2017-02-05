@@ -22,14 +22,25 @@
 #include "examinememorydlg.h"
 #include "debuggermanager.h"
 
+namespace
+{
+    const long ID_CHOICE_ADDRSPACES = wxNewId();
+    const long ID_CHOICE_ADDRSPACES_DUMMY = wxNewId();
+}
+
 BEGIN_EVENT_TABLE(ExamineMemoryDlg, wxPanel)
     EVT_BUTTON(XRCID("btnGo"), ExamineMemoryDlg::OnGo)
     EVT_COMBOBOX(XRCID("cmbBytes"), ExamineMemoryDlg::OnGo)
+    EVT_CHOICE(XRCID("choAddressSpace"), ExamineMemoryDlg::OnGo)
+//    EVT_CHOICE(ID_CHOICE_ADDRSPACES, ExamineMemoryDlg::OnGo)
     EVT_TEXT_ENTER(XRCID("txtAddress"), ExamineMemoryDlg::OnGo)
 END_EVENT_TABLE()
 
 ExamineMemoryDlg::ExamineMemoryDlg(wxWindow* parent) :
-    m_LastRowStartingAddress(0)
+    m_pAddrSpaces(0),
+    m_pAddrSpacesDummy(0),
+    m_LastRowStartingAddress(0),
+    m_LastRowStartingAddressValid(false)
 {
     //ctor
     if (!wxXmlResource::Get()->LoadPanel(this, parent, _T("MemoryDumpPanel")))
@@ -40,6 +51,23 @@ ExamineMemoryDlg::ExamineMemoryDlg(wxWindow* parent) :
     m_pText->SetFont(font);
 
     Clear();
+    SetAddressSpaces();
+}
+
+ExamineMemoryDlg::~ExamineMemoryDlg()
+{
+    if (m_pAddrSpaces)
+    {
+        m_pAddrSpaces->Reparent(0);
+        m_pAddrSpaces->Destroy();
+        m_pAddrSpaces = 0;
+    }
+    if (m_pAddrSpacesDummy)
+    {
+        m_pAddrSpacesDummy->Reparent(0);
+        m_pAddrSpacesDummy->Destroy();
+        m_pAddrSpacesDummy = 0;
+    }
 }
 
 void ExamineMemoryDlg::Begin()
@@ -56,6 +84,7 @@ void ExamineMemoryDlg::Clear()
 {
     m_pText->Clear();
     m_LastRowStartingAddress = 0;
+    m_LastRowStartingAddressValid = false;
     m_ByteCounter = 0;
     for (int i = 0; i < 67; ++i)
         m_LineText[i] = _T(' ');
@@ -83,15 +112,15 @@ void ExamineMemoryDlg::AddHexByte(const wxString& addr, const wxString& hexbyte)
 //    m_pDbg->Log(_T("AddHexByte(") + addr + _T(", ") + hexbyte + _T(')'));
     int bcmod = m_ByteCounter % 16;
 
-    if (m_LastRowStartingAddress == 0)
+    if (!m_LastRowStartingAddressValid)
     {
         // because we 'll be appending each row *after* we have consumed it
         // and then "addr" will point to the next row's starting address,
         // we 'll keep the current row's starting address in "m_LastRowStartingAddress".
 
-        // if it's zero (i.e this is the first row), keep "addr" as starting address for this row.
+        // if it's not valid (i.e this is the first row), keep "addr" as starting address for this row.
         // m_LastRowStartingAddress will be set again when we 've consumed this row...
-        addr.ToULong(&m_LastRowStartingAddress, 16);
+        m_LastRowStartingAddressValid = addr.ToULong(&m_LastRowStartingAddress, 16);
     }
 
 #define HEX_OFFSET(a) (a*3)
@@ -114,15 +143,57 @@ void ExamineMemoryDlg::AddHexByte(const wxString& addr, const wxString& hexbyte)
             m_pText->AppendText(_T('\n')); // prepend a newline
         m_LineText[23] = _T('|'); // put a "separator" in the middle (just to ease reading a bit)
 
-        unsigned long a;
-        addr.ToULong(&a, 16);
-        m_pText->AppendText(wxString::Format(_T("0x%lx: %.67s"), m_LastRowStartingAddress, m_LineText));
+        m_pText->AppendText(wxString::Format(_T("0x%04lx: %.67s"), m_LastRowStartingAddress, m_LineText));
         for (int i = 0; i < 67; ++i)
             m_LineText[i] = _T(' ');
         // update starting address for next row
         // add 8 bytes: addr is the start address of the second 8-byte chunk of this line, so next line is +8
-        m_LastRowStartingAddress = a + 8;
+        m_LastRowStartingAddress += 16;
     }
+}
+
+void ExamineMemoryDlg::SetInvalid()
+{
+    m_pText->SetStyle(0, m_pText->GetLastPosition(), wxColour(192, 192, 192));
+}
+
+wxString ExamineMemoryDlg::GetAddressSpace()
+{
+    if (!m_pAddrSpaces)
+        return wxEmptyString;
+    return m_pAddrSpaces->GetStringSelection();
+}
+
+void ExamineMemoryDlg::SetAddressSpaces(const wxArrayString& addrspaces)
+{
+    if (m_pAddrSpaces)
+    {
+        m_pAddrSpaces->Reparent(0);
+        m_pAddrSpaces->Destroy();
+        m_pAddrSpaces = 0;
+    }
+    if (m_pAddrSpacesDummy)
+    {
+        m_pAddrSpacesDummy->Reparent(0);
+        m_pAddrSpacesDummy->Destroy();
+        m_pAddrSpacesDummy = 0;
+    }
+    if (addrspaces.IsEmpty())
+    {
+        m_pAddrSpacesDummy = new wxStaticText(this, ID_CHOICE_ADDRSPACES_DUMMY, _T(""), wxDefaultPosition, wxSize(1, 1), 0, _T("ID_CHOICE_ADDRSPACES_DUMMY"));
+        wxXmlResource::Get()->AttachUnknownControl(_T("choAddressSpace"), m_pAddrSpacesDummy);
+    } else {
+        m_pAddrSpaces = new wxChoice(this, ID_CHOICE_ADDRSPACES, wxDefaultPosition, wxDefaultSize, addrspaces, 0, wxDefaultValidator, _T("ID_CHOICE_ADDRSPACES"));
+        wxXmlResource::Get()->AttachUnknownControl(_T("choAddressSpace"), m_pAddrSpaces);
+    }
+    Layout();
+}
+
+void ExamineMemoryDlg::SetAddressSpace(const wxString& addrspace)
+{
+    if (!m_pAddrSpaces)
+        return;
+    m_pAddrSpaces->SetStringSelection(addrspace);
 }
 
 void ExamineMemoryDlg::OnGo(cb_unused wxCommandEvent& event)

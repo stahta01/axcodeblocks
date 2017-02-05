@@ -1,4 +1,4 @@
-sdkdir=$(includedir)/codeblocks/scripting/sqplus
+sdkdir=$(includedir)/axcodeblocks/scripting/sqplus
               
 sdk_HEADERS = SqPlusConst.h \
                 SquirrelBindingsUtils.h \

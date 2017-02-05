@@ -52,8 +52,9 @@ dlgAbout::dlgAbout(wxWindow* parent)
                                    "would ever need from a program of that kind.\n"
                                    "Its pluggable architecture allows you, the developer, to add "
                                    "any kind of functionality to the core program, through the use of "
-                                   "plugins...\n");
-
+                                   "plugins...\n"
+                                   "AxCode::Blocks differs from standard Code::Blocks through the addition "
+				   "of the Axsem axs_debugger plugin.\n");
     wxString file = ConfigManager::ReadDataPath() + _T("/images/splash_1312.png");
     wxImage im; im.LoadFile(file, wxBITMAP_TYPE_PNG); im.ConvertAlphaToMask();
     wxBitmap bmp(im);
@@ -84,6 +85,9 @@ dlgAbout::dlgAbout(wxWindow* parent)
         "Damien Moore        : Developer\n"
         "Micah Ng            : Developer\n"
         "Ricardo Garcia      : All-hands person\n"
+        "Thomas Sailer       : axs_debugger plugin, autotools build\n"
+	"                      Axsem Microfoot scripted wizard, Keil support\n"
+        "Enrico Pargaetzi    : axs_debugger plugin\n"
         "Paul A. Jimenez     : Help and AStyle plugins\n"
         "Thomas Lorblanches  : CodeStat and Profiler plugins\n"
         "Bartlomiej Swiecki  : wxSmith RAD plugin\n"
@@ -95,6 +99,7 @@ dlgAbout::dlgAbout(wxWindow* parent)
         "Mario Cupelli       : Compiler support for embedded systems\n"
         "                      User's manual\n"
         "Jonas Zinn          : Misc. wxSmith AddOns and plugins\n"
+        "Mirai Computing     : cbp2make tool\n"
         "Anders F Bjoerklund : wxMac compatibility\n"
         "\n"
         "Contributors (in no special order):\n"
@@ -111,7 +116,9 @@ dlgAbout::dlgAbout(wxWindow* parent)
         "Chris Raschko       : Design of the 3D logo for Code::Blocks\n"
         "J.A. Ortega         : 3D Icon based on the above\n"
         "Alexandr Efremo     : Providing OpenSuSe packages\n"
-        "Huki                : Misc. Codecompletion improvements\n"
+        "Huki                : Misc. Code-Completion improvements\n"
+        "stahta01            : Misc. patches for several enhancements\n"
+        "BlueHazzard         : Misc. patches for several enhancements\n"
         "\n"
         "All contributors that provided patches.\n"
         "The wxWidgets project (http://www.wxwidgets.org).\n"

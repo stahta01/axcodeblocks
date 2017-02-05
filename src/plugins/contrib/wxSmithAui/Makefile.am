@@ -1,4 +1,4 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DWXMAKINGDLL_PROPGRID -DwxPG_USE_WXMODULE=0 \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include \
 		$(WXPROPGRID_INCLUDE) \
@@ -7,13 +7,17 @@ AM_CPPFLAGS = $(WX_CXXFLAGS) \
 		-I$(srcdir)/wxAuiNotebook \
 		-I$(srcdir)/wxAuiToolBar
 
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
+
 pluginlibdir = $(pkglibdir)/plugins
 
 pluginlib_LTLIBRARIES = libwxSmithAui.la
 
 libwxSmithAui_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libwxSmithAui_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libwxSmithAui_la_LIBADD = ../../../sdk/libaxcodeblocks.la \
 		       ../wxSmith/libwxsmithlib.la \
 		       $(WX_LIBS)
 

@@ -101,10 +101,16 @@ class DebuggerGDB : public cbDebuggerPlugin
 
         void OnWatchesContextMenu(wxMenu &menu, const cbWatch &watch, wxObject *property, int &disabledMenus);
 
+        void ExpandRegister(cbRegister::Pointer reg);
+        void CollapseRegister(cbRegister::Pointer reg);
+        bool SetRegisterValue(cbRegister::Pointer reg, const wxString &value);
+        void UpdateRegister(cbRegister::Pointer reg);
+        void SetChip(const wxString& chip);
+
         void GetCurrentPosition(wxString &filename, int &line);
         void RequestUpdate(DebugWindows window);
 
-        void AttachToProcess(const wxString& pid);
+        void AttachToProcess();
         void DetachFromProcess();
         bool IsAttachedToProcess() const;
 

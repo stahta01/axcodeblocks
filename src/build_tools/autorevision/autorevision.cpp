@@ -64,6 +64,7 @@ using namespace std;
 #endif
 
 bool QuerySvn(const string& workingDir, string& revision, string &date);
+bool QueryGit(const string& workingDir, string& revision, string &date);
 bool ParseFile(const string& docFile, string& revision, string &date);
 bool WriteOutput(const string& outputFile, string& revision, string& date);
 int main(int argc, char** argv);
@@ -79,7 +80,7 @@ int main(int argc, char** argv)
 {
     string outputFile;
     string workingDir;
-
+    bool do_git = false;
 
     for(int i = 1; i < argc; ++i)
     {
@@ -91,6 +92,8 @@ int main(int argc, char** argv)
             do_wx = true;
         else if(strcmp("+t", argv[i]) == 0)
             do_translate = true;
+        else if(strcmp("+git", argv[i]) == 0)
+            do_git = true;
         else if(strcmp("-v", argv[i]) == 0)
             be_verbose = true;
         else if(workingDir.empty())
@@ -109,6 +112,7 @@ int main(int argc, char** argv)
         puts("         +std assign const std::string");
         puts("         +wx  assing const wxString");
         puts("         +t   add Unicode translation macros to strings");
+        puts("         +git use git instead of svn");
         puts("         -v   be verbose");
         return 1;
     }
@@ -121,7 +125,10 @@ int main(int argc, char** argv)
     string comment;
     string old;
 
-    QuerySvn(workingDir, revision, date);
+    if (do_git)
+        QueryGit(workingDir, revision, date);
+    else
+        QuerySvn(workingDir, revision, date);
     WriteOutput(outputFile, revision, date);
 
     return 0;
@@ -179,9 +186,10 @@ bool QuerySvn(const string& workingDir, string& revision, string &date)
                     pos = date.rfind('.');
                     if (pos != string::npos)
                     {
-                        date = date.substr(0, pos);            }
+                        date = date.substr(0, pos);
                     }
                     return true;
+                }
             }
             return false;
         }
@@ -242,6 +250,64 @@ bool QuerySvn(const string& workingDir, string& revision, string &date)
 
 
 
+bool QueryGit(const string& workingDir, string& revision, string &date)
+{
+    revision = "0";
+    date = "unknown date";
+    string gitcmd("git");
+    if (!workingDir.empty()) {
+	gitcmd.append(" --work-tree=");
+	gitcmd.append(workingDir);
+    }
+    gitcmd.append(" rev-parse --short HEAD");
+
+    FILE *git = popen(gitcmd.c_str(), "r");
+
+    if(git)
+    {
+        char line[256];
+	if (!fgets(line, sizeof(line), git))
+	    return 0;
+	{
+	    char *cp(line);
+	    string rev;
+	    while (isxdigit(*cp)) {
+		rev.push_back(*cp);
+		++cp;
+	    }
+	    if (rev.size() < 7)
+		return 0;
+	    revision = "0x" + rev;
+	}
+    }
+    fclose(git);
+    gitcmd = "git";
+    if (!workingDir.empty()) {
+	gitcmd.append(" --work-tree=");
+	gitcmd.append(workingDir);
+    }
+    gitcmd.append(" show -s --format=\"%ci\" HEAD");
+
+    git = popen(gitcmd.c_str(), "r");
+    if(git)
+    {
+        char line[256];
+	if (!fgets(line, sizeof(line), git))
+	    return 0;
+	if (!isdigit(line[0]))
+            return 0;
+	date = line;
+	{
+	    string::size_type pos(date.find_first_of("\r\n"));
+	    if (pos != string::npos)
+		date.erase(pos);
+	}
+    }
+    fclose(git);
+    return 1;
+}
+
+
 bool WriteOutput(const string& outputFile, string& revision, string& date)
 {
     string comment("/*");
@@ -287,6 +353,9 @@ bool WriteOutput(const string& outputFile, string& revision, string& date)
 
     if(do_int || do_std || do_wx)
         fprintf(header, "\nnamespace autorevision\n{\n");
+
+    if (revision.empty())
+        revision = "0";
 
     if(do_int)
         fprintf(header, "\tconst unsigned int svn_revision = %s;\n", revision.c_str());

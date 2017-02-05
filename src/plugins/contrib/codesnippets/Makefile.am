@@ -1,6 +1,6 @@
 SUBDIRS = resources
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN \
 		$(WX_GTK2_CFLAGS) \
 		$(WX_X11_CFLAGS) \
 		-I$(top_srcdir)/src/include \
@@ -13,13 +13,17 @@ AM_CPPFLAGS = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/base \
 		-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/glue
 
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
+
 pluginlibdir = $(pkglibdir)/plugins
 
 pluginlib_LTLIBRARIES = libcodesnippets.la
 
 libcodesnippets_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libcodesnippets_la_LIBADD = ../../../sdk/libcodeblocks.la $(WX_LIBS) $(WX_GTK2_LIBS) $(WX_X11_LIBS)
+libcodesnippets_la_LIBADD = ../../../sdk/libaxcodeblocks.la $(WX_LIBS) $(WX_GTK2_LIBS) $(WX_X11_LIBS)
 
 libcodesnippets_la_SOURCES = codesnippets.cpp \
 		codesnippetstreectrl.cpp \

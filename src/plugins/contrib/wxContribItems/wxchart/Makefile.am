@@ -1,12 +1,15 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = $(WX_CPPFLAGS) -DBUILDING_PLUGIN -DWXMAKINGDLL_CHART \
 		-I$(srcdir)/include
 
+AM_CFLAGS = $(WX_CFLAGS)
+AM_CXXFLAGS = $(WX_CXXFLAGS)
+AM_LDFLAGS = $(WX_LIBS) @WIN32_DLLLDFLAGS@ @WIN32_DLLEXPSTDCALL@
 
-wxcontribitemsdir=$(libdir)/codeblocks/wxContribItems
+wxcontribitemsdir=$(libdir)/axcodeblocks/wxContribItems
 
 wxcontribitems_LTLIBRARIES = libwxchartctrl.la
 
-libwxchartctrl_la_LDFLAGS = -version-info 0:1:0
+libwxchartctrl_la_LDFLAGS = -version-info 0:1:0 -shared -no-undefined
 
 libwxchartctrl_la_LIBADD = $(WX_LIBS)
 
@@ -31,7 +34,7 @@ libwxchartctrl_la_SOURCES = \
 ./src/yaxis.cpp
 
 
-sdkdir=$(includedir)/codeblocks/wxContribItems/wxchart/include/wx
+sdkdir=$(includedir)/axcodeblocks/wxContribItems/wxchart/include/wx
 
 sdk_HEADERS = \
 ./include/wx/axis.h \

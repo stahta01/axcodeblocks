@@ -3,7 +3,8 @@ SUBDIRS = icons images
 dist_noinst_DATA = $(srcdir)/*.xrc \
 				$(srcdir)/*.rc \
 				$(srcdir)/start_here/*.png \
-				$(srcdir)/start_here/*.htm*
+				$(srcdir)/start_here/*.htm* \
+				x86.manifest
 
 dist_pkgdata_DATA = resources.zip start_here.zip
 CLEANFILES = $(dist_pkgdata_DATA)

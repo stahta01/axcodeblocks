@@ -45,15 +45,27 @@ Compiler * CompilerKeilC51::CreateCopy()
 
 AutoDetectResult CompilerKeilC51::AutoDetectInstallationDir()
 {
+    return AutoDetectInstallationDir(false);
+}
+
+AutoDetectResult CompilerKeilC51::AutoDetectInstallationDir(bool keilx)
+{
     if (platform::windows)
     {
+        wxString axsdb;
 #ifdef __WXMSW__ // for wxRegKey
         wxRegKey key;   // defaults to HKCR
         key.SetName(wxT("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Keil \265Vision3")); // 'backslash265' is the mu character
         if (key.Exists() && key.Open(wxRegKey::Read)) // found; read it
             key.QueryValue(wxT("LastInstallDir"), m_MasterPath);
+        wxRegKey keyaxsdb;
+        keyaxsdb.SetName(wxT("HKEY_LOCAL_MACHINE\\Software\\AXSEM\\AXSDB"));
+        if (keyaxsdb.Exists() && key.Open(wxRegKey::Read))
+            keyaxsdb.QueryValue(wxT("InstallDir"), axsdb);
 #endif // __WXMSW__
-
+#ifdef __WXGTK__
+        axsdb = _T("/usr/share/microfoot");
+#endif
         if (m_MasterPath.IsEmpty())
         {
             // just a guess; the default installation dir
@@ -67,6 +79,24 @@ AutoDetectResult CompilerKeilC51::AutoDetectInstallationDir()
             AddIncludeDir(m_MasterPath + wxFILE_SEP_PATH + wxT("inc"));
             AddLibDir(m_MasterPath + wxFILE_SEP_PATH + wxT("lib"));
             m_ExtraPaths.Add(m_MasterPath + wxFILE_SEP_PATH + wxT("bin"));
+        }
+
+        if ( wxDirExists(axsdb) )
+        {
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libmf") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libmf") + wxFILE_SEP_PATH + (keilx ? wxT("keil2") : wxT("keil")));
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libmfcrypto") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libmfcrypto") + wxFILE_SEP_PATH + (keilx ? wxT("keil2") : wxT("keil")));
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libaxdvk2") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libaxdvk2") + wxFILE_SEP_PATH + (keilx ? wxT("keil2") : wxT("keil")));
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libax5031") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libax5031") + wxFILE_SEP_PATH + (keilx ? wxT("keil2") : wxT("keil")));
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libax5042") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libax5042") + wxFILE_SEP_PATH + (keilx ? wxT("keil2") : wxT("keil")));
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libax5043") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libax5043") + wxFILE_SEP_PATH + (keilx ? wxT("keil2") : wxT("keil")));
+            AddIncludeDir(axsdb + wxFILE_SEP_PATH + wxT("libax5051") + wxFILE_SEP_PATH + wxT("include"));
+            AddLibDir(axsdb + wxFILE_SEP_PATH + wxT("libax5051") + wxFILE_SEP_PATH + (keilx ? wxT("keil2") : wxT("keil")));
         }
     }
     else
@@ -91,4 +121,9 @@ CompilerKeilCX51::~CompilerKeilCX51()
 Compiler * CompilerKeilCX51::CreateCopy()
 {
     return (new CompilerKeilCX51(*this));
+}
+
+AutoDetectResult CompilerKeilCX51::AutoDetectInstallationDir()
+{
+    return CompilerKeilC51::AutoDetectInstallationDir(true);
 }

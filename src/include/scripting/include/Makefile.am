@@ -1,4 +1,4 @@
-sdkdir=$(includedir)/codeblocks/scripting/include
+sdkdir=$(includedir)/axcodeblocks/scripting/include
 
 sdk_HEADERS = sqdbgserver.h \
 				sqstdaux.h \
