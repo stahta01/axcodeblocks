@@ -248,10 +248,10 @@ void CPURegistersDlg::PropertyMap::Update(const unsigned int col[5])
             {
                 if (txt[i].IsEmpty())
                 {
-                    m_property->SetCell(i + 2, 0);
+                    m_property->SetCell(i + 2, wxPGCell());
                     continue;
                 }
-                m_property->SetCell(i + 2, new wxPGCell(txt[i]));
+                m_property->SetCell(i + 2, wxPGCell(txt[i]));
             }
             m_property->SetHelpString(cv[4]);
         }
@@ -296,10 +296,10 @@ void CPURegistersDlg::PropertyMap::Update(const unsigned int col[5])
             {
                 if (txt[i].IsEmpty())
                 {
-                    m_property->SetCell(i + 2, 0);
+                    m_property->SetCell(i + 2, wxPGCell());
                     continue;
                 }
-                m_property->SetCell(i + 2, new wxPGCell(txt[i]));
+                m_property->SetCell(i + 2, wxPGCell(txt[i]));
             }
             m_property->SetHelpString(cv[4]);
         }
@@ -350,7 +350,7 @@ void CPURegistersDlg::FindColWidth(wxPGProperty *root, wxClientDC &dc, int width
 #else
     wxPropertyGridState *state = m_grid->GetState();
 #endif
-    for (int i = 0; i < root->GetCount(); ++i)
+    for (int i = 0; i < root->GetChildCount(); ++i)
     {
         wxPGProperty *p(root->Item(i));
         if (!p)
