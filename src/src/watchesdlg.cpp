@@ -148,9 +148,9 @@ class WatchesProperty : public wxStringProperty
             m_readonly(readonly)
         {
             if (!col4.IsEmpty())
-                SetCell(3, new wxPGCell(col4));
+                SetCell(3, wxPGCell(col4));
             if (!col5.IsEmpty())
-                SetCell(4, new wxPGCell(col5));
+                SetCell(4, wxPGCell(col5));
         }
 
         // Set editor to have button
@@ -170,20 +170,20 @@ class WatchesProperty : public wxStringProperty
         {
             if (txt.IsEmpty())
             {
-                SetCell(3, 0);
+                SetCell(3, wxPGCell());
                 return;
             }
-            SetCell(3, new wxPGCell(txt));
+            SetCell(3, wxPGCell(txt));
         }
 
         void SetCol5(const wxString& txt)
         {
             if (txt.IsEmpty())
             {
-                SetCell(4, 0);
+                SetCell(4, wxPGCell());
                 return;
             }
-            SetCell(4, new wxPGCell(txt));
+            SetCell(4, wxPGCell(txt));
         }
 
     protected:
